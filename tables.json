@@ -1,5 +1,5 @@
 {
-  "tables": [
+  "snow_flake_tables": [
     {
       "country": "(country_id int primary key, country varchar(128))"
     },
@@ -42,5 +42,6 @@
     {
       "d_weekday": "(weekday_id int primary key, action_weekday varchar(128))"
     }
-  ]
+  ],
+  "star_schema_tables": []
 }

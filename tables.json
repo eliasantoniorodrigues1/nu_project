@@ -1,0 +1,47 @@
+{
+  "snow_flake_tables": [
+    {
+      "country": "(country_id int primary key, country varchar(128))"
+    },
+    {
+      "state": "(state_id int primary key, state varchar(128), foreign key(country_id) references country(country_id))"
+    },
+    {
+      "city": "(city_id int primary key, city varchar(256), foreign key(state_id) references state(state_id))"
+    },
+    {
+      "customers": "(customer_id int primary key, first_name varchar(128), last_name varchar(128), customer_city int, country_name varchar(128), cpf int)"
+    },
+    {
+      "accounts": "(account_id int primary key, foregin key(customer_id) references customers(customer_id), created_at timestamp, status varchar(128), account_branch varchar(128), account_check_digit varchar(128), account_number varchar(128))"
+    },
+    {
+      "transfer_ins": "(id int primary key, foreign key(account_id) references accounts(account_id), amount float, transaction_requested_at int, transaction_completed_at int, status varchar(128))"
+    },
+    {
+      "transfer_outs": "(id int primary key, foreign key(account_id) references accounts(account_id), amount float, transaction_requested_at int, transaction_completed_at int, status varchar(128))"
+    },
+    {
+      "pix_movements": "(id int primary key, foreign key(account_id) references accounts(account_id), in_or_out varchar(128), pix_amount float, pix_requested_at int, pix_completed_at int, status varchar(128))"
+    },
+    {
+      "investments": "(transaction_id int primary key, foreign key(account_id) references accounts(account_id), type varchar(128), amount float, investment_requested_at int, investment_completed_at int, status varchar(128))"
+    },
+    {
+      "d_month": "(month_id int primary key, action_month int)"
+    },
+    {
+      "d_year": "(year_id int primary key, action_year int)"
+    },
+    {
+      "d_time": "(time_id int primary key, action_timestamp timestamp, week_id int, month_id int, year_id int, weekday_id int)"
+    },
+    {
+      "d_week": "(week_id int primary key, action_week int)"
+    },
+    {
+      "d_weekday": "(weekday_id int primary key, action_weekday varchar(128))"
+    }
+  ],
+  "star_schema_tables": []
+}

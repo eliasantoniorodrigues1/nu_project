@@ -1,0 +1,47 @@
+{
+  "snow_flake_tables": [
+    {
+      "country": "CREATE TABLE IF NOT EXISTS country (country_id bigint primary key, country varchar(128));"
+    },
+    {
+      "state": "CREATE TABLE IF NOT EXISTS  state (state_id bigint primary key, state varchar(128), country_id bigint, foreign key(country_id) references country(country_id));"
+    },
+    {
+      "city": "CREATE TABLE IF NOT EXISTS  city (city_id bigint primary key, city varchar(256), state_id bigint, foreign key(state_id) references state(state_id));"
+    },
+    {
+      "customers": "CREATE TABLE IF NOT EXISTS  customers (customer_id bigint primary key, first_name varchar(128), last_name varchar(128), customer_city bigint, country_name varchar(128), cpf bigint);"
+    },
+    {
+      "accounts": "CREATE TABLE IF NOT EXISTS  accounts (account_id bigint primary key, customer_id bigint, foreign key(customer_id) references customers(customer_id), created_at datetime, status varchar(128), account_branch varchar(128), account_check_digit varchar(128), account_number varchar(128));"
+    },
+    {
+      "transfer_ins": "CREATE TABLE IF NOT EXISTS  transfer_ins (id bigint primary key, account_id bigint, foreign key(account_id) references accounts(account_id), amount float, transaction_requested_at bigint, transaction_completed_at bigint, status varchar(128));"
+    },
+    {
+      "transfer_outs": "CREATE TABLE IF NOT EXISTS  transfer_outs (id bigint primary key, account_id bigint, foreign key(account_id) references accounts(account_id), amount float, transaction_requested_at bigint, transaction_completed_at bigint, status varchar(128));"
+    },
+    {
+      "pix_movements": "CREATE TABLE IF NOT EXISTS  pix_movements (id bigint primary key, account_id bigint, foreign key(account_id) references accounts(account_id), in_or_out varchar(128), pix_amount float, pix_requested_at bigint, pix_completed_at bigint, status varchar(128));"
+    },
+    {
+      "investments": "CREATE TABLE IF NOT EXISTS  investments (transaction_id bigint primary key, account_id bigint, foreign key(account_id) references accounts(account_id), type varchar(128), amount float, investment_requested_at bigint, investment_completed_at bigint, status varchar(128));"
+    },
+    {
+      "d_month": "CREATE TABLE IF NOT EXISTS  d_month (month_id bigint primary key, action_month bigint);"
+    },
+    {
+      "d_year": "CREATE TABLE IF NOT EXISTS  d_year (year_id bigint primary key, action_year bigint);"
+    },
+    {
+      "d_time": "CREATE TABLE IF NOT EXISTS  d_time(time_id bigint primary key, action_timestamp datetime, week_id bigint, month_id bigint, year_id bigint, weekday_id bigint);"
+    },
+    {
+      "d_week": "CREATE TABLE IF NOT EXISTS  d_week (week_id bigint primary key, action_week bigint);"
+    },
+    {
+      "d_weekday": "CREATE TABLE IF NOT EXISTS  d_weekday (weekday_id bigint primary key, action_weekday varchar(128));"
+    }
+  ],
+  "star_schema_tables": []
+}

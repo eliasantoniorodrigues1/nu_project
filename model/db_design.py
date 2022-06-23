@@ -27,12 +27,14 @@ def db_conn(credentials: Dict):
             database=database
         )
     except Exception as e:
-        print(e)
+        print(f"Database doesn't exist {database}...creating...")
+        print(f'Error message --> {e}')
         conn = mysql.connector.connect(
             host=host,
             user=user,
             password=password
         )
+
     return conn
 
 
@@ -76,7 +78,7 @@ if __name__ == '__main__':
 
     # drop
     # drop_database(conn, 'nu_snow_flake_2')
-    
+
     # file to string connection
     with open(os.path.join(MODEL_DIR, 'credentials.json'), 'r') as f:
         credentials = json.load(f)
@@ -85,14 +87,15 @@ if __name__ == '__main__':
     with open(os.path.join(MODEL_DIR, 'tables.json'), 'r') as f:
         data_tables = json.load(f)
 
-    # create
+    # create schema
     conn = db_conn(credentials=credentials)
-    create_database(conn, 'nu_snow_flake_3')
+    create_database(conn, credentials['database'])
 
     # create all tables
+    new_conn = db_conn(credentials)
     tables = data_tables['snow_flake_tables']
     for table in tables:
         for v in table.values():
             query = f"{v}"
             print(query)
-            create_table(conn, query)
+            create_table(new_conn, query)

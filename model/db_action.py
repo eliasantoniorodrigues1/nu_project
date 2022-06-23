@@ -9,7 +9,7 @@ from datetime import datetime
 import itertools
 
 
-def split_insert(list_values: List, begin: int, step: int):
+def split_insert(list_values: list, begin: int, step: int):
     '''
         function to iterate for dataset consolidating values to performe an
         insert in batch
@@ -26,45 +26,35 @@ def split_insert(list_values: List, begin: int, step: int):
         if end > lenght:
             end = lenght
 
-        consolidate_list.append(list_values[begin:end])
-        # validate duplicate lists
-        """ 
-        if len(list_values[begin:end]) > 1:
-            for list_data in range(list_values[begin:end]):
-                if list_data not in consolidate_list:
-                    consolidate_list.append(list_data)
-        elif list_values[begin:end] not in consolidate_list:
-            # unpack list before append
-            consolidate_list.append(*list_values[begin:end])
-        """
+        consolidate_list.append([tuple(value_l)
+                                for value_l in list_values[begin:end]])
         begin = end
         end += step
-
-    # remove duplicates on return
-    return list(value for value, _ in itertools.groupby(consolidate_list))
+    # print(*consolidate_list)
+    return consolidate_list
 
 
 def execute_insert(conn, database: str, table: str, list_columns: List, record_list) -> None:
-    """ 
+    """
         function to execute insert with dynamic columns
         params: conn: connection with database
                 database: str with the name of the database
                 table: str with the name of the table
                 dataset: raw data to be iterate and insert into the table
     """
-
+    # print(f'--->>>> {record_list[0]}')
     columns = ', '.join([str(column) for column in list_columns])
-    query = f'INSERT IGNORE INTO {database}.{table} ({columns}) VALUES ({"%s, " * (len(list_columns)-1) + "%s"});'
-    cursor = conn.cursor()
+    for r in record_list:
+        # values = ', '.join([str(tuple(list_v)) for list_v in r])
+        values = [tuple(list_v) for list_v in r]
+        query = f'INSERT IGNORE INTO {database}.{table} ({columns}) VALUES ({"%s, " * (len(list_columns)-1) + "%s"});'
+        # query = f'INSERT INTO {database}.{table} ({columns}) VALUES {values};'
 
-    for record in record_list:
         try:
-            cursor.executemany(query, record)
+            cursor = conn.cursor()
+            cursor.executemany(query, values)
         except Exception as e:
-            # conn.rollback()
-            print(f'Error --> {e}')
-            # x = input('')
-            # print(record)
+            print(f'Register already inserted. {e}')
         finally:
             conn.commit()
     print('Insert execute successful.')
@@ -122,7 +112,7 @@ def iso8601_to_datetime(str_date: str) -> datetime:
 def consolidate_path_files(fullpath: str):
     '''
         function create to walk trogh directory
-        and consolidate into a list the full path o 
+        and consolidate into a list the full path o
         a dataset file
         param: fullpath: str containing the raw database
     '''
@@ -173,21 +163,24 @@ if __name__ == '__main__':
 
             # clean none from transfer_ins and outs
             if tbl_name in ['transfer_ins', 'transfer_outs']:
-                df['transaction_completed_at'] = df['transaction_completed_at'].replace(
-                    'None', 0)
+                try:
+                    df['transaction_completed_at'] = df['transaction_completed_at'].replace(
+                        'None', 0)
+                except KeyError:
+                    print("Key doesn't exist.")
 
             if tbl_name == 'pix_movements':
-                df['pix_completed_at'] = df['pix_completed_at'].replace(
-                    'None', 0)
+                try:
+                    df['pix_completed_at'] = df['pix_completed_at'].replace(
+                        'None', 0)
+                except KeyError:
+                    print("Key doesn't exist.")
 
             # consolidate inserts limit 1000 rows
             list_values = df.values.tolist()
             result_list_values = split_insert(
                 list_values=list_values, begin=0, step=1000)
 
-            # second duplicate check
-            new_list = list(value for value,
-                            _ in itertools.groupby(result_list_values))
 
             # call function to execute insert
             print('Please wait...')
@@ -197,6 +190,6 @@ if __name__ == '__main__':
                 credentials['database'],
                 tbl_name,
                 df.columns.tolist(),
-                new_list,
+                result_list_values,
             )
     print(f'Execution time was {datetime.now() - start}')

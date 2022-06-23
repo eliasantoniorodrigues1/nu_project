@@ -74,6 +74,9 @@ if __name__ == '__main__':
     BASE_DIR = os.path.abspath(os.path.dirname('main.py'))
     MODEL_DIR = os.path.join(BASE_DIR, 'model')
 
+    # drop
+    # drop_database(conn, 'nu_snow_flake_2')
+    
     # file to string connection
     with open(os.path.join(MODEL_DIR, 'credentials.json'), 'r') as f:
         credentials = json.load(f)
@@ -84,10 +87,7 @@ if __name__ == '__main__':
 
     # create
     conn = db_conn(credentials=credentials)
-    create_database(conn, 'nu_snow_flake')
-
-    # drop
-    # drop_database(conn, 'nu_snow_flake')
+    create_database(conn, 'nu_snow_flake_3')
 
     # create all tables
     tables = data_tables['snow_flake_tables']

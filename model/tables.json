@@ -43,5 +43,6 @@
       "d_weekday": "CREATE TABLE IF NOT EXISTS  d_weekday (weekday_id bigint primary key, action_weekday varchar(128));"
     }
   ],
-  "star_schema_tables": []
+  "star_schema_tables": [],
+  "convert_to_datetime": ["created_at", "action_timestamp"]
 }

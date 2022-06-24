@@ -1,4 +1,5 @@
 from datetime import datetime
+from email import header
 from dateutil import parser
 import os
 import json
@@ -150,7 +151,36 @@ if __name__ == '__main__':
     # print(t)
     # print(l)
     # l = [[('Brasil', 1811589392032273152)]]
-    start = datetime.now()
-    time.sleep(2)
 
-    print(f'Execution time was {datetime.now() - start}')
+    """ 
+    file = r'D:\Projetos\17 - Programação\Projeto_Nu\Nubank_Analytics_Engineer_Case_4.0\project\raw_tables\investments\investments_json.json'
+    with open(file, 'r') as f:
+        list_data = json.load(f)
+
+    # create header for dataframe
+    columns = [column for column in list_data[0]['transactions'][0].keys()]
+    columns.insert(0, 'account_id')
+    consolidate = []
+    for data in list_data:
+        investments_accounts = []
+        for value in data.values():
+            new_list = []
+            if isinstance(value, str):
+                account_id = value
+            if isinstance(value, list):
+                for element in value:
+                    new_list = [v for v in element.values()]
+                    new_list.insert(0, account_id)
+                    # consolidate transaction with account_id
+                    investments_accounts.append(new_list)
+        df = pd.DataFrame(investments_accounts, columns=columns)
+        consolidate.append(df)
+        investments_accounts.clear()
+
+    df = pd.concat(consolidate)
+    df.to_csv('investments.csv', index=False)
+    print('Dados consolidado com sucesso.')
+
+    """
+    x = '2020-09-22T15:18:17.000000000'
+    print(x[-6])

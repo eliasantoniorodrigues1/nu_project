@@ -25,7 +25,7 @@
       "pix_movements": "CREATE TABLE IF NOT EXISTS  pix_movements (id bigint primary key, account_id bigint, foreign key(account_id) references accounts(account_id), in_or_out varchar(128), pix_amount float, pix_requested_at bigint, pix_completed_at bigint, status varchar(128));"
     },
     {
-      "investments": "CREATE TABLE IF NOT EXISTS  investments (transaction_id bigint primary key, account_id bigint, foreign key(account_id) references accounts(account_id), type varchar(128), amount float, investment_requested_at bigint, investment_completed_at bigint, status varchar(128));"
+      "investments": "CREATE TABLE IF NOT EXISTS  investments (transaction_id bigint primary key, account_id bigint, foreign key(account_id) references accounts(account_id), type varchar(128), amount float, investment_requested_at bigint, investment_completed_at bigint, investment_completed_at_timestamp datetime, status varchar(128));"
     },
     {
       "d_month": "CREATE TABLE IF NOT EXISTS  d_month (month_id bigint primary key, action_month bigint);"

@@ -1,12 +1,14 @@
 from datetime import datetime
 import os
+from webbrowser import get
 import pandas as pd
 from db_design import db_conn
 import json
 from typing import List
 from math import ceil
 from datetime import datetime
-import itertools
+from read_api import get_json_investments
+import dateutil.parser
 
 
 def split_insert(list_values: list, begin: int, step: int):
@@ -48,8 +50,6 @@ def execute_insert(conn, database: str, table: str, list_columns: List, record_l
         # values = ', '.join([str(tuple(list_v)) for list_v in r])
         values = [tuple(list_v) for list_v in r]
         query = f'INSERT IGNORE INTO {database}.{table} ({columns}) VALUES ({"%s, " * (len(list_columns)-1) + "%s"});'
-        # query = f'INSERT INTO {database}.{table} ({columns}) VALUES {values};'
-
         try:
             cursor = conn.cursor()
             cursor.executemany(query, values)
@@ -79,6 +79,12 @@ def concat_dataset(list_path: str) -> pd.DataFrame:
                     df = pd.read_excel(file)
                     # insert dataset into my list
                     df_list.append(df)
+                elif file.endswith('.json'):
+                    with open(file, 'r') as f:
+                        investment_data = json.load(f)
+                    df = pd.DataFrame(investment_data)
+                    df_list.append(df)
+
             except PermissionError:
                 print(
                     'File not read. Please close the file to continue and then run again.')
@@ -105,8 +111,15 @@ def iso8601_to_datetime(str_date: str) -> datetime:
         function convert date utc iso8601 in datetime
         param: str_date: string containig the date value
     '''
-    fmt = '%Y-%m-%dT%H:%M:%S.%fZ'
-    return datetime.strptime(str_date, fmt)
+
+    try:
+        fmt = '%Y-%m-%dT%H:%M:%S.%fZ'
+        date = datetime.strptime(str_date, fmt)
+    except ValueError:
+        print(str_date)
+        fmt = '%Y-%m-%dT%H:%M:%SS.%fZ'
+        date = datetime.strptime(str_date, fmt)
+    return date
 
 
 def consolidate_path_files(fullpath: str):
@@ -151,7 +164,8 @@ if __name__ == '__main__':
     for root, dirs, files in os.walk(RAW_TABLE_DIR):
         for tbl_name in inserts:
             # searching for all files into directory
-            list_paths = consolidate_path_files(os.path.join(root, tbl_name))
+            list_paths = consolidate_path_files(
+                os.path.join(root, tbl_name))
             # receive a pandas dataframe to insert into the table from
             # dir name
             print(f'Inserting data into {tbl_name}...')
@@ -176,11 +190,21 @@ if __name__ == '__main__':
                 except KeyError:
                     print("Key doesn't exist.")
 
+            if tbl_name == 'investments':
+                try:
+                    df = get_json_investments(list_paths)
+                    df['investment_completed_at_timestamp'] = df['investment_completed_at_timestamp'].apply(
+                        dateutil.parser.parse)
+                except Exception as e:
+                    print(f'Error --> {e}')
+
             # consolidate inserts limit 1000 rows
             list_values = df.values.tolist()
             result_list_values = split_insert(
                 list_values=list_values, begin=0, step=1000)
 
+            # print(result_list_values[-1])
+            #x = input('')
 
             # call function to execute insert
             print('Please wait...')
@@ -192,4 +216,5 @@ if __name__ == '__main__':
                 df.columns.tolist(),
                 result_list_values,
             )
+
     print(f'Execution time was {datetime.now() - start}')

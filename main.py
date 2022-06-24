@@ -1,186 +1,110 @@
+import model.db_design as db_design
+import model.db_action as db_action
+import api.read_api as read_api
+from calculate_earnings import calc_investment_earning
+import dateutil.parser
 from datetime import datetime
-from email import header
-from dateutil import parser
 import os
 import json
-import pandas as pd
-from typing import List
-from math import ceil
-import time
-from datetime import datetime
+import log
 
+logger = log.get_logger('main_execution')
 
-def execute_insert(conn, database: str, table: str, dataset: pd.DataFrame) -> None:
-    """ 
-        function to execute insert with dynamic columns
-        params: conn: connection with database
-                database: str with the name of the database
-                table: str with the name of the table
-                dataset: raw data to be iterate and insert into the table
-    """
-    columns = ', '.join([str(column) for column in dataset.columns.tolist()])
-    # loop througut dataset
-    for _, row in dataset.iterrows():
-        # print(tuple(row))
-        # query = f'INSERT INTO {database}.{table} ({columns}) VALUES ({"%s, " * (len(row)-1) + "%s"});'
-        query = f'INSERT INTO {database}.{table} ({columns}) VALUES {tuple(row)};'
-        print(query)
-        cursor = conn.cursor()
-        try:
-            cursor.execute(query)
-            # cursor.execute(query, tuple(row))
-        except Exception as e:
-            print(e)
-        finally:
-            conn.commit()
-
-    print('Insert execute with success.')
-
-
-def divide_insert(lista, inicio, passo):
-    # Essa função recebe uma lista contendo os values do seu insert
-    # inicio e passo, para dividir em uma sublista para fazer insert
-    # por lotes. Exemplo realizar um insert de 1000 em 1000
-    # inicio = 0 passo = 1000
-    # print(f'Lista recebida -->> {lista}')
-    tamanho = len(lista)
-    fim = passo
-    qtde = ceil(len(lista) / passo)
-    lista_consolidada = []
-
-    for i in range(qtde):
-        print(i)
-        if fim > tamanho:
-            fim = tamanho
-
-        lista_consolidada.append(tuple(*lista[inicio:fim]))
-
-        inicio = fim
-        fim += passo
-    # print(f'Lista retornada --> {lista_consolidada}')
-    return lista_consolidada
-
-
-""" data = '2019-04-19T01:34:25.000Z'
-
-
-def iso8601_to_datetime(str_date: str) -> datetime:
-    fmt = '%Y-%m-%dT%H:%M:%S.%fZ'
-    return datetime.strptime(str_date, fmt)
-
-
-BASE_DIR = os.path.abspath(os.path.dirname('main.py'))
-MODEL_DIR = os.path.join(BASE_DIR, 'model')
-RAW_TABLE_DIR = os.path.join(BASE_DIR, 'raw_tables')
-
-# file to string connection
-with open(os.path.join(MODEL_DIR, 'tables.json'), 'r') as f:
-    data_tables = json.load(f)
-
-d = data_tables['snow_flake_tables']
-ordering_insert = []
-for dict in d:
-    name = [tbl_name for tbl_name in dict.keys()]
-    ordering_insert.append(*name)
-
-print(ordering_insert) """
-
-""" 
-def slip_insert(dataset: pd.DataFrame, begin: int, step: int):
-    '''
-        function to iterate for dataset consolidating values to performe an
-        insert in batch
-        params: datase: a pandas dataframe containing values for insert into
-        database
-        params: begin: int containing initial step
-        params: step: int to limit the max rows os insert
-    '''
-    lenght = len(dataset)
-    count = ceil(lenght / step)
-    consolidate_list = []
-    list_insert_values = []
-    end = step
-    for i in range(count):
-        if end > lenght:
-            end = lenght
-
-        df_values = dataset.iloc[begin:end].iterrows()
-        for _, row in df_values:
-            list_insert_values.append(tuple(row))
-
-        consolidate_list.append(list_insert_values[:])
-        list_insert_values.clear()
-        begin = end
-        end += step
-
-    return consolidate_list
-
-
-def divide_insert(lista, inicio, passo):
-    # Essa função recebe uma lista contendo os values do seu insert
-    # inicio e passo, para dividir em uma sublista para fazer insert
-    # por lotes. Exemplo realizar um insert de 1000 em 1000
-    # inicio = 0 passo = 1000
-    tamanho = len(lista)
-    fim = passo
-    qtde = ceil(len(lista) / passo)
-    lista_consolidada = []
-    lista_to_insert = []
-    total = 0
-
-    for i in range(qtde):
-        if fim > tamanho:
-            fim = tamanho
-
-        lista_to_insert = lista[inicio:fim]
-        total += len(lista_to_insert)
-
-        lista_consolidada.append(lista_to_insert[:])
-        lista_to_insert.clear()
-
-        inicio = fim
-        fim += passo
-    return lista_consolidada, total
-
- """
 if __name__ == '__main__':
-    #path_file = r'D:\Projetos\17 - Programação\Projeto_Nu\Nubank_Analytics_Engineer_Case_4.0\project\raw_tables\accounts\part-00000-tid-2834924781296170616-a9b7a53c-b8f1-417c-876b-22ce8ab4c825-11024507-1-c000.csv'
-    #df = pd.read_csv(path_file)
-    # print(df.head())
-    #l, t = slip_insert(df, 0, 10)
-    # print(t)
-    # print(l)
-    # l = [[('Brasil', 1811589392032273152)]]
+    BASE_DIR = os.path.abspath(os.path.dirname('main.py'))
+    MODEL_DIR = os.path.join(BASE_DIR, 'model')
+    SETTINGS_DIR = os.path.join(BASE_DIR, 'settings')
+    RAW_TABLES_DIR = os.path.join(BASE_DIR, 'raw_tables')
 
-    """ 
-    file = r'D:\Projetos\17 - Programação\Projeto_Nu\Nubank_Analytics_Engineer_Case_4.0\project\raw_tables\investments\investments_json.json'
-    with open(file, 'r') as f:
-        list_data = json.load(f)
+     # execution time
+    start = datetime.now()
+    logger.info(f'Proccess started at {start}')
 
-    # create header for dataframe
-    columns = [column for column in list_data[0]['transactions'][0].keys()]
-    columns.insert(0, 'account_id')
-    consolidate = []
-    for data in list_data:
-        investments_accounts = []
-        for value in data.values():
-            new_list = []
-            if isinstance(value, str):
-                account_id = value
-            if isinstance(value, list):
-                for element in value:
-                    new_list = [v for v in element.values()]
-                    new_list.insert(0, account_id)
-                    # consolidate transaction with account_id
-                    investments_accounts.append(new_list)
-        df = pd.DataFrame(investments_accounts, columns=columns)
-        consolidate.append(df)
-        investments_accounts.clear()
+    # load files from settins
+    # credentials
+    with open(os.path.join(SETTINGS_DIR, 'credentials.json'), 'r') as f:
+        credentials = json.load(f)
 
-    df = pd.concat(consolidate)
-    df.to_csv('investments.csv', index=False)
-    print('Dados consolidado com sucesso.')
+    # table conf
+    with open(os.path.join(SETTINGS_DIR, 'tables.json'), 'r') as f:
+        data_tables = json.load(f)
 
-    """
-    x = '2020-09-22T15:18:17.000000000'
-    print(x[-6])
+    # create schema
+    conn = db_design.db_conn(credentials=credentials)
+    db_design.create_database(conn, credentials['database'])
+
+    # create all tables
+    new_conn = db_design.db_conn(credentials)
+    tables = data_tables['snow_flake_tables']
+    for table in tables:
+        for v in table.values():
+            query = f"{v}"
+            print(query)
+            db_design.create_table(new_conn, query)
+
+    # insert data into tables
+    # generate list to ordering insert
+    tbl_names = data_tables['snow_flake_tables']
+    inserts = []
+    for dict in tbl_names:
+        name = [tbl_name for tbl_name in dict.keys()]
+        inserts.append(*name)
+    # read raw_tables directory to concat files into just one
+    # dataset
+    for root, dirs, files in os.walk(RAW_TABLES_DIR):
+        for tbl_name in inserts:
+            # searching for all files into directory
+            list_paths = db_action.consolidate_path_files(
+                os.path.join(root, tbl_name))
+            # receive a pandas dataframe to insert into the table from
+            # dir name
+            logger.info(f'Inserting data into {tbl_name}...')
+            df = db_action.concat_dataset(list_paths)
+            for column in df.columns:
+                # convert date in datetime
+                if column in data_tables['convert_to_datetime']:
+                    df[column] = df[column].apply(
+                        db_action.iso8601_to_datetime)
+
+            # clean none from transfer_ins and outs
+            if tbl_name in ['transfer_ins', 'transfer_outs']:
+                try:
+                    df['transaction_completed_at'] = df['transaction_completed_at'].replace(
+                        'None', 0)
+                except KeyError:
+                    logger.error("Key doesn't exist.")
+
+            if tbl_name == 'pix_movements':
+                try:
+                    df['pix_completed_at'] = df['pix_completed_at'].replace(
+                        'None', 0)
+                except KeyError:
+                    logger.error("Key doesn't exist.")
+
+            if tbl_name == 'investments':
+                try:
+                    df = read_api.get_json_investments(list_paths)
+                    df['investment_completed_at_timestamp'] = df['investment_completed_at_timestamp'].apply(
+                        dateutil.parser.parse)
+                except Exception as e:
+                    logger.error(f'Error --> {e}')
+
+            # consolidate inserts limit 1000 rows to improve performance
+            list_values = df.values.tolist()
+            result_list_values = db_action.split_insert(
+                list_values=list_values, begin=0, step=1000)
+
+            # call function to execute insert
+            print('Please wait...')
+            conn = db_design.db_conn(credentials=credentials)
+            db_action.execute_insert(
+                conn,
+                credentials['database'],
+                tbl_name,
+                df.columns.tolist(),
+                result_list_values,
+            )
+
+    logger.info(f'Execution time takes {datetime.now() - start}')
+
+    # calculate investments earning

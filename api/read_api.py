@@ -12,7 +12,7 @@ def get_json_investments(list_paths: list) -> pd.DataFrame:
     for file in list_paths:
         file = str(file)
         with open(file, 'r') as f:
-            list_data = json.load(f)
+            list_data = json.load(f) 
 
         # create header for dataframe
         columns = [column for column in list_data[0]['transactions'][0].keys()]

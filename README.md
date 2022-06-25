@@ -5,7 +5,7 @@
 ### Objetivo:
 	Criar o banco de dados original (floco de neve) e migra-lo para o esquema estrela.
 
-a. Proposta para mudança do modelo de dados original:	
+***a. Proposta para mudança do modelo de dados original:***
 
 Snow Flake
 
@@ -17,17 +17,16 @@ Snow Flake
 
 
 
-b.	O modelo floco de neve não é o mais recomendado pois possui um nível maior de normalização dos dados, o que pode gerar lentidão devido ao acesso de relacionamentos entre tabelas do modelo para alcançar um determinado tipo de resultado.
-A ideia é consolidar algumas tabelas do modelo, criando agregação de campos.
+***b. O modelo floco de neve não é o mais recomendado pois possui um nível maior de normalização dos dados, o que pode gerar lentidão devido ao acesso de relacionamentos entre tabelas do modelo para alcançar um determinado tipo de resultado.
+A ideia é consolidar algumas tabelas do modelo, criando agregação de campos. ***
 
-Dimensão de região:
-De:
-city,
-state,
-country
-para:
-d_region
-	Dimensão tempo:
+**Dimensão de região:**
+	De:
+	city,
+	state,
+	country
+para: ***d_region***
+**Dimensão tempo:**
 	De:
 		d_time,
 		d_weekday

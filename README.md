@@ -3,7 +3,21 @@
 
 ## Projeto de migração de modelo de dados
 ### Objetivo:
-	Criar o banco de dados original (floco de neve) e migra-lo para o esquema estrela.
+	Recriar o banco de dados original no modelo floco de neve e migra-lo para o esquema estrela.
+
+### Problem Statements
+
+Problem Statement 1: Gerando consultas SQL
+
+Essa etapa gerar a consulta para o problema proposto de saldo mensal das contas. A consulta e o csv gerado estão armazenados no caminho abaixo:
+Nubank_Analytics_Engineer_Case_4.0\Problem Statement\1_Problem Statement
+A engine de banco de dados usada é o **MySQL.
+
+•	Amount_Balance_Account.sql
+•	Balance Account Monthly.csv
+•	Necessary Inputs.txt
+
+### Problem Statement 2:
 
 ***a. Proposta para mudança do modelo de dados original:***
 
@@ -15,9 +29,6 @@
   ***Star Schema***
   
  ![image](https://user-images.githubusercontent.com/49626719/175793235-fa3da6f6-927c-46fa-b82d-2f5c9bf37ef6.png)
-
-
-
 
 
 ***b. O modelo floco de neve não é o mais recomendado pois possui um nível maior de normalização dos dados, o que pode gerar lentidão devido ao acesso de relacionamentos entre tabelas do modelo para alcançar um determinado tipo de resultado.
@@ -72,6 +83,10 @@ Abaixo irei apresentar a estrutura para executar toda a ação de criação do m
 
 ### Passo a passo do funcionamento do projeto:
 
+#### Estrutura do Projeto:
+
+![image](https://user-images.githubusercontent.com/49626719/175793587-665a639a-8af3-49f4-91b0-4155c0d553e2.png)
+
 #### Passo 1: Design da base de dados
 
 Criação dos arquivos de configuração: 
@@ -113,19 +128,107 @@ Essa parte do processo consiste em ler cada diretório buscando por tipos espec�
 
 Todo o processo é armazenado em log para facilitar análise de erros e melhoria de performance.
 
+***Parte do log da execução do processo no banco de dados.***
+
+![image](https://user-images.githubusercontent.com/49626719/175793986-9269d110-cc64-4e9b-b355-dc4cfd23898d.png)
+
+
 ### É possível reproduzir o projeto usando o arquivo requirements.txt
 
-### Problem Statements
+### Problem Statement 3: Plano de Migração
 
-Problem Statement 1: Gerando consultas SQL
+O plano de migração segue o fluxo abaixo:
+	1.Ler os arquivos no banco de dados nu_snow_flake através de consultas sql armazenadas no diretório query dentro do projeto.
+	
+	2. Conectar-se ao banco de dados nu_star_schema  e executar o insert seguindo a ordem das consultas dentro do diretório de queries.
+	
+	Scripts desse processo:
+	
+![image](https://user-images.githubusercontent.com/49626719/175793857-8720c7ac-fceb-4fb5-99a0-49526656180e.png)
 
-Essa etapa gerar a consulta para o problema proposto de saldo mensal das contas. A consulta e o csv gerado estão armazenados no caminho abaixo:
-Nubank_Analytics_Engineer_Case_4.0\Problem Statement\1_Problem Statement
-A engine de banco de dados usada é o **MySQL.
+	São scripts com enfâse em leitura de arquivos em diretório, criação de conexão com dois bancos de dados diferentes e execução de select em um e insert 
+	no outro.
+	
+**Exemplo:**
+	
+		def populate_tables(model: str) -> None:
+			    # insert data into tables
 
-•	Amount_Balance_Account.sql
-•	Balance Account Monthly.csv
-•	Necessary Inputs.txt
+			    # generate list to ordering insert
+			    tbl_names = data_tables[model + '_tables']
+			    inserts = []
+			    for dict in tbl_names:
+				try:
+				    name = [tbl_name for tbl_name in dict.keys()]
+				    inserts.append(*name)
+				except AttributeError:
+				    logger.error('You are trying to get key from a list.')
+
+			    if model == 'snow_flake':
+				# read raw_tables directory to concat files into just one
+				# dataset
+				for root, dirs, files in os.walk(RAW_TABLES_DIR):
+				    for tbl_name in inserts:
+					# searching for all files into directory
+					list_paths = db_action.consolidate_path_files(
+					    os.path.join(root, tbl_name))
+					# receive a pandas dataframe to insert into the table from
+					# dir name
+					logger.info(f'Inserting data into {tbl_name}...')
+					df = db_action.concat_dataset(list_paths)
+					for column in df.columns:
+					    # convert date in datetime
+					    if column in data_tables['convert_to_datetime']:
+						df[column] = df[column].apply(
+						    dateutil.parser.parse)
+
+					# clean none from transfer_ins and outs
+					if tbl_name in ['transfer_ins', 'transfer_outs']:
+					    try:
+						df['transaction_completed_at'] = df['transaction_completed_at'].replace(
+						    'None', 0)
+					    except KeyError:
+						logger.error("Key doesn't exist.")
+
+					if tbl_name == 'pix_movements':
+					    try:
+						df['pix_completed_at'] = df['pix_completed_at'].replace(
+						    'None', 0)
+					    except KeyError:
+						logger.error("Key doesn't exist.")
+
+					if tbl_name == 'investments':
+					    try:
+						df = read_api.get_json_investments(list_paths)
+						df['investment_completed_at_timestamp'] = df['investment_completed_at_timestamp'].apply(
+						    dateutil.parser.parse)
+					    except Exception as e:
+						logger.error(f'Error --> {e}')
+
+					# consolidate inserts limit 1000 rows to improve performance
+					list_values = df.values.tolist()
+					result_list_values = db_action.split_insert(
+					    list_values=list_values, begin=0, step=1000)
+
+					# call function to execute insert
+					print('Please wait...')
+					conn = db_design.db_conn(credentials=credentials_snow)
+					db_action.execute_insert(
+					    conn,
+					    credentials_snow['database'],
+					    tbl_name,
+					    df.columns.tolist(),
+					    result_list_values,
+					)
+			    else:
+				# connect with two databases to performe select and then insert
+				snow_conn = db_design.db_conn(credentials=credentials_snow)
+				star_conn = db_design.db_conn(credentials=credentials_star)
+
+				# process execution
+				db_read_query.execute(snow_conn, star_conn,
+						      credentials_star, QUERY_DIR)
+
 
 ### Problem Statement 4: Proposta de KPIs para o Pix
 
@@ -162,7 +265,7 @@ Contas para serem calculados os retornos de investimento.
  
 Foi usado um script python para a leitura do arquivo investment_accounts_to_send.csv e uma função para ler o json de investimentos investments_json com o intuito de gerar uma tabela e a partir daí usando o framework pandas do Python processar o cruzamento das contas com o arquivo de transações.
 
-***Resultado
+***Resultado***
 
 ![image](https://user-images.githubusercontent.com/49626719/175793473-6e58ebb0-65b5-4e01-8f03-9da914e9e962.png)
 

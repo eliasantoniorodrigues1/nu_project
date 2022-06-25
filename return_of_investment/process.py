@@ -1,4 +1,4 @@
-from calculate import calculate_movements
+from .calculate import calculate_movements
 import json
 from datetime import datetime
 import dateutil.parser
@@ -74,7 +74,7 @@ def filter_df(dataframe: pd.DataFrame, column_to_filter: str, list_values: list)
     return dataframe.loc[dataframe[column_to_filter].isin(list_values)]
 
 
-if __name__ == '__main__':
+def calculation_process():
     print('Please wait, processing calculation...')
     # load base file with accounts
     df_accounts = pd.read_csv(os.path.join(

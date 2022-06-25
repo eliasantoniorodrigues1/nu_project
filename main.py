@@ -3,7 +3,7 @@ from datetime import datetime
 import log
 
 logger = log.get_logger('main_execution')
-
+ 
 if __name__ == '__main__':
     # execution time
     start = datetime.now()

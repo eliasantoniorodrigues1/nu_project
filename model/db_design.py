@@ -57,7 +57,8 @@ def create_database(conn, name: str, collation='utf8mb4'):
     cursor = conn.cursor()
     cursor.execute(query)
     conn.commit()
-    logger.info(f'Database {name} create successful with {collation} configuration.')
+    logger.info(
+        f'Database {name} create successful with {collation} configuration.')
 
 
 def drop_database(conn, name: str):
@@ -80,3 +81,6 @@ def create_table(conn, query: str):
     cursor.execute(query)
     conn.commit()
     logger.info(f'Query {query} executed successeful.')
+
+
+

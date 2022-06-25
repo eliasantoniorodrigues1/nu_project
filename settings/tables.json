@@ -43,6 +43,29 @@
       "d_weekday": "CREATE TABLE IF NOT EXISTS  d_weekday (weekday_id bigint primary key, action_weekday varchar(128));"
     }
   ],
-  "star_schema_tables": [],
-  "convert_to_datetime": ["created_at", "action_timestamp"]
+  "star_schema_tables": [
+    {
+      "d_calendar": "CREATE TABLE IF NOT EXISTS d_calendar (date_id bigint primary key, timestamp_date datetime, date datetime, year int, month int, week_number int, week_day int);"
+                             
+    },
+    {
+      "d_region": "CREATE TABLE IF NOT EXISTS d_region (city_id bigint primary key, state varchar(5), country varchar(50));"
+    },
+    {
+      "d_customers": "CREATE TABLE IF NOT EXISTS d_customer (customer_id bigint primary key, cpf bigint unique, customer varchar(128), account_number bigint, account_branch int, account_check_digit int, created_at datetime, status varchar(60));"
+    },
+    {
+      "d_type_moviment": "CREATE TABLE IF NOT EXISTS d_type_moviment (type_moviment_id int primary key, type_moviment varchar(60));"
+    },
+    {
+      "d_status_transaction": "CREATE TABLE IF NOT EXISTS d_status_transaction (status_id int primary key, status varchar(60));"
+    },
+    {
+      "f_transaction": "CREATE TABLE IF NOT EXISTS f_transactions (transaction_id bigint primary key, account_id bigint, customer_id bigint, foreign key (customer_id) references d_customer (customer_id), city_id bigint, foreign key (city_id) references d_region (city_id), date_id bigint, foreign key (date_id) references d_calendar (date_id), status_id int, foreign key (status_id) references d_status_transaction (status_id), type_moviment_id int, foreign key (type_moviment_id) references d_type_moviment (type_moviment_id), amount numeric);"
+    }
+  ],
+  "convert_to_datetime": [
+    "created_at",
+    "action_timestamp"
+  ]
 }

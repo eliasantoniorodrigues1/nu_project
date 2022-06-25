@@ -52,7 +52,7 @@ def execute_insert(conn, database: str, table: str, list_columns: List, record_l
     try:
         logger.info(f'Sample of values: {record_list[0]}')
     except IndexError:
-        logger.error(f'Index error')
+        logger.error('Index error')
 
     for r in record_list:
         values = [tuple(list_v) for list_v in r]
@@ -114,21 +114,6 @@ def concat_dataset(list_path: str) -> pd.DataFrame:
     return pd.DataFrame()
 
 
-def iso8601_to_datetime(str_date: str) -> datetime:
-    '''
-        function convert date utc iso8601 in datetime
-        param: str_date: string containig the date value
-    '''
-    try:
-        fmt = '%Y-%m-%dT%H:%M:%S.%fZ'
-        date = datetime.strptime(str_date, fmt)
-    except ValueError:
-        print(str_date)
-        fmt = '%Y-%m-%dT%H:%M:%SS.%fZ'
-        date = datetime.strptime(str_date, fmt)
-    return date
-
-
 def consolidate_path_files(fullpath: str):
     '''
         function create to walk trogh directory
@@ -141,3 +126,23 @@ def consolidate_path_files(fullpath: str):
         for file in files:
             list_datasets.append(os.path.join(root, file))
     return list_datasets
+
+
+def execute_insert_simple(conn, database, table, record_list):
+    try:
+        logger.info(f'Sample of values: {record_list[0]}')
+    except IndexError:
+        logger.error('Index error')
+
+    for r in record_list:
+        values = [tuple(list_v) for list_v in r]
+        query = f'INSERT IGNORE INTO {database}.{table} VALUES ({"%s, " * (len(values[0])-1) + "%s"});'
+        try:
+            cursor = conn.cursor()
+            cursor.executemany(query, values)
+        except Exception as e:
+            logger.error(f'Register already inserted. {e}')
+        finally:
+            conn.commit()
+
+    logger.info('Insert execute successful.')

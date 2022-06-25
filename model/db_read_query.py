@@ -1,27 +1,9 @@
 import os
-from . import db_design
 from . import db_action
-import json
 import log
 
 # log obj
 logger = log.get_logger('populating_star_model')
-
-'''
-BASE_DIR = os.path.abspath(os.path.dirname('main.py'))
-MODEL_DIR = os.path.join(BASE_DIR, 'model')
-QUERY_DIR = os.path.join(MODEL_DIR, 'query')
-SETTINGS_DIR = os.path.join(BASE_DIR, 'settings')
-RAW_TABLES_DIR = os.path.join(BASE_DIR, 'raw_tables')
-
-# credentials
-with open(os.path.join(SETTINGS_DIR, 'credentials_snow.json'), 'r') as f:
-    credentials_snow = json.load(f)
-
-with open(os.path.join(SETTINGS_DIR, 'credentials_star.json'), 'r') as f:
-    credentials_star = json.load(f)
-
-'''
 
 
 def execute(conn_select, conn_insert, credentials_star, query_dir: str):
@@ -44,7 +26,6 @@ def execute(conn_select, conn_insert, credentials_star, query_dir: str):
                     r = cursor.fetchall()
 
                     # removing datetime from query result
-                    # df = pd.DataFrame(r)
                     list_insert = db_action.split_insert(
                         list(r), begin=0, step=1000)
                     logger.info(f'Inserting {len(list_insert)} registers.')

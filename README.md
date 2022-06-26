@@ -177,39 +177,41 @@ The whole process is stored in a log to facilitate error analysis and future per
 ![image](https://user-images.githubusercontent.com/49626719/175793986-9269d110-cc64-4e9b-b355-dc4cfd23898d.png)
 
 
-### É possível reproduzir o projeto usando o arquivo requirements.txt
-Existe também um backup das informações do projeto no **GitHub** de forma privada.
+You can reproduce the project using the ***requirements.txt*** file.
+There is also a private backup of the project information on **GitHub**.
 
-### Problem Statement 3: Plano de Migração
 
-Para executar uma migração das informações de um banco para o outro sem que haja impacto na operação é necessário análisar os horários com menor volume de transações no banco de dados, bem como avaliar a capacidade do servidor de lidar com a carga de trabalho oferecida pelo processo.
-O intuito é manter todos os seriviços em produção em execução sem gargalos.
+### Problem Statement 3: Migration Plan
 
-É muito importante um alinhamento com as áreas de administração de banco de dados, negócio e outras equipes que possam ser impactadas.
-As consultas devem ser otimizadas para onerar o mínimo possível os servidores, sejam eles em nuvem ou onpremise.
+To perform a migration of information from one database to another without impacting the operation, it is necessary to analyze the times with the lowest volume of transactions in the database, as well as evaluate the server's ability to deal with the workload offered by the process. .
+The intent is to keep all services in production running without bottlenecks.
 
-O plano de carga também deve ser levado em consideração, qual seria a melhor abordagem, coleta de hora em hora, carga histórica e etc. 
-É necessário alinhar a estratégia com a equipe para levantamento de possíveis gaps, dessa forma as chances do processo ser executado sem problemas fica muito mais alta.
+It is very important to align with the areas of database administration, business and other teams that may be impacted.
+Queries must be optimized to burden servers as little as possible, whether in the cloud or on-premises.
 
-Usar uma base de testes para fazer uma análise prévia da performance do fluxo criado com um número controlado de informações, afim de estimar o impacto com o volume
+The load plan should also be taken into account, what would be the best approach, hourly collection, historical load, etc.
+It is necessary to align the strategy with the team to identify possible gaps, so the chances of the process being executed without problems are much higher.
+
+Use a test base to make a prior analysis of the performance of the flow created with a controlled number of information, in order to estimate the impact with the volume
 real.
 
-### O plano de migração segue o fluxo abaixo:
+### The migration plan follows the flow below:
 
-1. Alimentar os arquivos de configuração do banco de dados na pasta **\project\settings\**, pois são eles que irão criar a conexão entre os bancos necessários.
+1. Feed the database configuration files in the **\project\settings\** folder, as they will create the connection between the necessary databases.
 
-2. Ler as informações no banco de dados nu_snow_flake através de consultas sql armazenadas no diretório **\project\model\query** e editá-las afim de melhorar a performance delas, caso seja necessário.
-	
-3. Conectar-se ao banco de dados nu_star_schema  e executar o insert seguindo a ordem das consultas dentro do diretório de queries, para que os relacionamentos sejam criados corretamente.
-	
-Scripts desse processo:
+2. Read the information in the nu_snow_flake database through sql queries stored in the **\project\model\query** directory and edit them in order to improve their performance, if necessary.
+
+3. Connect to the nu_star_schema database and execute the insert following the order of queries within the queries directory, so that relationships are created correctly.
+
+Scripts for this process:
 	
 ![image](https://user-images.githubusercontent.com/49626719/175793857-8720c7ac-fceb-4fb5-99a0-49526656180e.png)
 
-São scripts com enfâse em leitura de arquivos em diretório, criação de conexão com dois bancos de dados diferentes e execução de select em um e insert 
-no outro.
+
+They are scripts with an emphasis on reading files in a directory, creating a connection with two different databases and executing select on one and insert
+in the other.
 	
-**Exemplo: Esse script é reponsável por inserir as informações retiradas do banco snow_flake, para o modelo star**
+**Example: This script is responsible for inserting the information taken from the snow_flake bank, for the star model**
 	
 		def populate_tables(model: str) -> None:
 			    # insert data into tables
@@ -290,78 +292,87 @@ no outro.
 						      credentials_star, QUERY_DIR)
 
 
-### Problem Statement 4: Proposta de KPIs para o Pix
+### Problem Statement 4: Proposed KPIs for Pix
 
-O pix é um produto com uma alta de manda de transações. Para acompanhar o desempenho desse produto eu sugiro a criação dos seguintes indicadores:
+The pix is ​​a product with a high demand for transactions. To monitor the performance of this product I suggest the creation of the following indicators:
 
-Visão Gerencial
+Management View
 
-	- Quantidade de transações consolidadas por dia
-	- Quantidade de transações consolidadas por mês
-	- Percentual de crescimento de transações em relação aos demais produtos (transferências, investimentos e etc)
-	- Desempenho em relação a meta
+	- Number of consolidated transactions per day
+	- Number of consolidated transactions per month
+	- Percentage of transactions growth in relation to other products (transfers, investments, etc.)
+	- Performance against target
 
-**Exemplo:**
+**Exemple:**
 
 ![image](https://user-images.githubusercontent.com/49626719/175800943-6ab0e0bc-ae2d-45b8-9f8a-012a5b4eb1c2.png)
 
 
-***Visão Analítica***
+***Analytical View***
 
-	- Quantidade de transações por hora
-	- Quantidade de transações por minuto
-	- Quantidade de transações por segundo
+	- Number of transactions per hour
+	- Number of transactions per minute
+	- Number of transactions per second
 
-**Exemplo:**
+**Example:**
 
 ![image](https://user-images.githubusercontent.com/49626719/175800966-a2971a03-6b8c-47e8-8fde-91f733cbe754.png)
 
 
-***Visão Preditiva***
+***Predictive Vision***
 
-Essa visão irá conter o resultado da predição dos próximos picos de transações por
-Minuto, segundo e hora.
+This view will contain the result of the prediction of the next peaks of transactions by
+Minute, second and hour.
 
-O intuito é efetuar um novo balanceamento dos recursos de servidores para o serviço não ser impactado.
+The aim is to rebalance the server resources so that the service is not impacted.
 
-**Exemplo**
+**Example**
 
 ![image](https://user-images.githubusercontent.com/49626719/175801058-6e8931ca-23f9-49c0-bef5-d478ee988ce8.png)
 
 
-### Problem Statement 5: Função para calcular o retorno total de um investimento realizado
+### Problem Statement 5: Function to calculate the total return on an investment made
 
-Abaixo segue o print do arquivo .csv gerado. 
+Below is the print of the generated .csv file.
 
-Contas para serem calculados os retornos de investimento.
+Accounts for calculating investment returns.
 
 ![image](https://user-images.githubusercontent.com/49626719/175793467-3d198199-483f-4d5e-90c4-7015f86ad23f.png)
 
  
-Foi usado um script python para a leitura do arquivo investment_accounts_to_send.csv e uma função para ler o json de investimentos investments_json com o intuito de gerar uma tabela e a partir daí usando o framework pandas do Python processar o cruzamento das contas com o arquivo de transações.
+A python script was used to read the investment_accounts_to_send.csv file and a function to read the investments json investments_json in order to generate a table and from there using Python's pandas framework to process the crossing of accounts with the transaction file .
 
-Principais arquivos da pasta **return_of_investment**:
+Main files in the **return_of_investment** folder:
 
 ![image](https://user-images.githubusercontent.com/49626719/175830229-51c7e0a5-521b-4759-b44c-ca212ea472c6.png)
 
 	- process.py 
-	  	Arquivo principal. Executa todas as funções necessárias para a geração do arquivo final.
+	  	Main file. It executes all the functions necessary for the generation of the final file.
 	- calculate.py
-		Efetua os cálculos abaixo:
+		Perform the calculations below:
 		 - 𝑀𝑜𝑣𝑒𝑚𝑒𝑛𝑡𝑠 = 𝑃𝑟𝑒𝑣𝑖𝑜𝑢𝑠 𝐷𝑎𝑦 𝐵𝑎𝑙𝑎𝑛𝑐𝑒 + 𝐷𝑒𝑝𝑜𝑠𝑖𝑡 − 𝑊𝑖𝑡ℎ𝑑𝑟𝑎𝑤al
 		 - 𝐸𝑛𝑑 𝑜𝑓 𝐷𝑎𝑦 𝐼𝑛𝑐𝑜𝑚𝑒 = 𝑀𝑜𝑣𝑒𝑚𝑒𝑛𝑡𝑠 * 𝐼𝑛𝑐𝑜𝑚𝑒 𝑅𝑎𝑡𝑒
 		 - 𝐴𝑐𝑐𝑜𝑢𝑛𝑡 𝐷𝑎𝑖𝑙𝑦 𝐵𝑎𝑙𝑎𝑛𝑐𝑒 = 𝑀𝑜𝑣𝑒𝑚𝑒𝑛𝑡𝑠 + 𝐸𝑛𝑑 𝑜𝑓 𝐷𝑎𝑦 𝐼𝑛𝑐𝑜𝑚𝑒	
-	- investment_income.csv
-		Arquivo final gerado pelo processo. Traz o saldo diário de cada conta enviada.
-
-***Resultado***
+	- investment_income.csv		
+		Final file generated by the process. Brings the daily balance of each account sent.
+		
+		
+***Result***
 
 ![image](https://user-images.githubusercontent.com/49626719/175830195-3fa06e39-73ec-4307-9a0f-408cc2d5bad1.png)
 
 
- ### Script Python para analisar as transações:
+ ### Script Python to analyse transactions:
  
 			 def calculate_movements(list, i):
+				'''
+				this function receives a list to performe
+				a slice, and then calculate the moviments account
+				movements = previous day balance + deposit - withdrawal
+				end of day income = movements * income rate
+				account daily balance = moviments + end of day income
+
+				'''
 			    if i == 0:
 				previous_d = 0
 				deposit = list[i][3]

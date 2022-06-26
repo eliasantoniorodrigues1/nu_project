@@ -108,10 +108,10 @@ Criação dos arquivos de configuração:
 
 Credenciais:
 	Contém todas as informações para a criação do esquema de banco de dados.
-	Host
-	User
-	Password
-	Database
+  - Host
+  - User
+  - Password
+  - Database
 
 O argumento database precisa ser passado para não gerar erro na criação do modelo de dados.
 

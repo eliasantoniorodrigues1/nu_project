@@ -9,9 +9,11 @@
 
 ### Problem Statement 1: Gerando consultas SQL
 
-Essa etapa gerar a consulta para o problema proposto de saldo mensal das contas. A consulta e o csv gerado estão armazenados no caminho abaixo:
-Nubank_Analytics_Engineer_Case_4.0\Problem Statement\1_Problem Statement
-A engine de banco de dados usada é o **MySQL.
+Nssa etapa foi gerado uma consulta para o problema proposto de saldo mensal das contas. A consulta e o csv gerado estão armazenados no caminho abaixo:
+
+**\Nubank_Analytics_Engineer_Case_4.0\Problem Statement\1_Problem Statement**
+
+**SGBD -> MySQL (default engine).***
 
 •	Amount_Balance_Account.sql
 •	Balance Account Monthly.csv
@@ -19,6 +21,8 @@ A engine de banco de dados usada é o **MySQL.
 
 Foi utilizado a união de três tabelas para a criação de uma tabela de cálculo (CTE). Essa tabela é ligada com a tabela de clientes para trazer o account_id e o nome do cliente.
 As colunas *Total Transfer In*, *Total Transfer Out* e *Account Monthly Balance* são calculadas na CTE e levam em consideração as movimentações do pix também.
+
+**Obs.: Para esse problema não foi usado a tabela de investimentos.**
 
 **Query**
 
@@ -44,42 +48,50 @@ As colunas *Total Transfer In*, *Total Transfer Out* e *Account Monthly Balance*
  ![image](https://user-images.githubusercontent.com/49626719/175793235-fa3da6f6-927c-46fa-b82d-2f5c9bf37ef6.png)
 
 
-***b. O modelo floco de neve não é o mais recomendado pois possui um nível maior de normalização dos dados, o que pode gerar lentidão devido ao acesso de relacionamentos entre tabelas do modelo para alcançar um determinado tipo de resultado.
+***b. O modelo floco de neve não é o mais recomendado pois possui um nível maior de normalização dos dados, o que pode gerar lentidão devido ao ecesso de relacionamentos entre tabelas do modelo para alcançar um determinado tipo de resultado.
 A ideia é consolidar algumas tabelas do modelo, criando agregação de campos.***
 
+### Dimensões propostas para o modelo estrela:
+
 **Dimensão de região:**
-	De:
+De:
 	city,
 	state,
 	country
-para: ***d_region***
+para: 
+	***d_region***
 
 **Dimensão tempo:**
-	De:
-		d_time,
-		d_weekday
-		d_week
-		d_month
-		d_year
-	para:
-		d_calendar
+De:
+	d_time,
+	d_weekday
+	d_week
+	d_month
+	d_year
+para:
+	**d_calendar**
 		
-Dimensão de Transação:
-		Gerar os tipos de transações a partir das tabelas de transfer_ins, transfer_outs, pix_moviments.
+**Dimensão de Transação:**
 
-		d_transaction_type
+Gerar os tipos de transações realizadas a partir das tabelas transfer_ins, transfer_outs, pix_moviments e investments e adiciona um id para favorecer o relacionamento com a tabela **f_transactions**.
+	**d_transaction_type**
+	
+Essa dimensáo irá favorecer a criação de indicadores por tipo de movimento.
+![image](https://user-images.githubusercontent.com/49626719/175829704-c85263c4-3c65-44d1-b1f5-054e35b253fa.png)
 
-Dimesão de Status Transação:
 
-Obter todos os status das transações das tabelas transfer_ins, transfer_outs, pix_moviments e gerar uma única dimensão de status.
-		d_status_transaction
+**Dimesão de Status Transação:**
 
-Dimesão de Clientes:
+Obter todos os status das transações (completed, failed) das tabelas transfer_ins, transfer_outs, pix_moviments e investments. 
+Gerar uma única dimensão de status.
+		**d_status_transaction**
+
+**Dimesão de Clientes:**
 
 Para a criação da tabela de clientes foi agreagdo algumas informações da tabela de contas, pois como ambas possuem registros únicos, usei essa estratégia para 
-diminuir o número de dimensóes e manter o relacionamento com a tabela fato com menos chaves estrangeiras.
+diminuir o número de dimensóes e manter o relacionamento com a tabela fato com menos chaves estrangeiras possível.
 
-Criação da tabela Fato:
+**Criação da tabela Fato f_transactions:**
 
 A tabela fato é a consolidação das chaves estrangeiras de todas as tabelas dimensão, usando sempre como referência a chave primária de cada uma.
 Unificação de:
@@ -104,42 +116,49 @@ Abaixo irei apresentar a estrutura para executar toda a ação de criação do m
 
 Criação dos arquivos de configuração: 
 
-•	credentials.json
+•	credentials_snow_flake.json
+•	credentials_snow_star.json
 •	tables.json
 
-Credenciais:
-	Contém todas as informações para a criação do esquema de banco de dados.
-  - Host
-  - User
-  - Password
-  - Database
+
+**Credenciais:**
+Contém todas as informações para a criação do esquema de banco de dados:
+
+	  - Host
+	  - User
+	  - Password
+	  - Database
 
 O argumento database precisa ser passado para não gerar erro na criação do modelo de dados.
 
-Tables:
+**Tables:**
 
-O arquivo de configuração das tabelas server para manter a parte toda a estrutura de tabelas do banco, bem como os nomes das colunas, tipo de dados e relacionamentos.
+O arquivo de configuração das tabelas server para manter a parte toda a estrutura de tabelas do banco, bem como os nomes das colunas, tipo de dados e os seus respectivos relacionamentos.
 
-Existem dois dicionários:
+**Existem dois dicionários:**
 
 •	Snow_flake_tables (Original)
 •	Star_Schema_tables (Modelo proposto)
 •	Convert_to_datetime
 
-A lista convert_to_datetime, server para mapear todas as colunas de data que precisam de tratamento em seus respectivos UTCs.
+*Sempre que quiser alterar as tabelas do modelo de dados, alterar relacionamentos e etc, é no arquivo **tables.json** que você irá fazer os ajustes.
+
+***A lista convert_to_datetime, server para mapear todas as colunas de data que precisam de tratamento em seus respectivos UTCs.***
 
 #### Passo 2: Ação na base de dados criada
 
-Leitura da pasta raw_tables, para criação do banco de dados.
-Essa parte do processo consiste em ler cada diretório buscando por tipos específicos de arquivos (csv, xlsx, json).
+Leitura da pasta **raw_tables**, para criação do banco de dados.
+Essa parte do processo consiste em ler cada diretório buscando por tipos específicos de arquivos **(csv, xlsx, json)**.
 
-1.	Percorrer os diretórios dentro do diretório raw_tables e mapeia os arquivos dentro de cada pasta e os insere em uma lista.
+1.	Percorrer os diretórios dentro do diretório raw_tables e mapear os arquivos dentro de cada pasta e os inserir em uma lista de diretórios.
 2.	Usa a lista para percorrer o diretório novamente abrindo os arquivos e os consolidando, gerando assim um único dataset.
 3.	Converte o dataset gerado em lista e passa para a função, que divide os dados em lotes para melhorar a performance da inserção no banco de dados.
 
+**Obs.: Todo o processo de coleta dos arquivos, e execução das queries no modelo snow_flake para inserir no modelo star está levando cerca de 12 minutos.**
+
 ### Log
 
-Todo o processo é armazenado em log para facilitar análise de erros e melhoria de performance.
+Todo o processo é armazenado em log para facilitar análise de erros e melhoria de performance futura.
 
 ***Parte do log da execução do processo no banco de dados.***
 
@@ -147,14 +166,18 @@ Todo o processo é armazenado em log para facilitar análise de erros e melhoria
 
 
 ### É possível reproduzir o projeto usando o arquivo requirements.txt
+Existe também um backup das informações do projeto no **GitHub** de forma privada.
 
 ### Problem Statement 3: Plano de Migração
 
-Para executar uma migração das informações de um banco para o outro sem que haja impacto na operação é necessário análisar os horários com menor impacto, sempre
-visando manter a performance das bases de produção.
+Para executar uma migração das informações de um banco para o outro sem que haja impacto na operação é necessário análisar os horários com menor volume de transações no banco de dados, bem como avaliar a capacidade do servidor de lidar com a carga de trabalho oferecida pelo processo.
+O intuito é manter todos os seriviços em produção em execução sem gargalos.
+
 É muito importante um alinhamento com as áreas de administração de banco de dados, negócio e outras equipes que possam ser impactadas.
 As consultas devem ser otimizadas para onerar o mínimo possível os servidores, sejam eles em nuvem ou onpremise.
-O plano de carga também deve ser levado em consideração, qual seria a melhor abordagem, coleta de hora em hora, carga histórica e etc. É necessário alinhar a estratégia para que tudo corra bem.
+
+O plano de carga também deve ser levado em consideração, qual seria a melhor abordagem, coleta de hora em hora, carga histórica e etc. 
+É necessário alinhar a estratégia com a equipe para levantamento de possíveis gaps, dessa forma as chances do processo ser executado sem problemas fica muito mais alta.
 
 Usar uma base de testes para fazer uma análise prévia da performance do fluxo criado com um número controlado de informações, afim de estimar o impacto com o volume
 real.
@@ -172,7 +195,7 @@ O plano de migração segue o fluxo abaixo:
 	São scripts com enfâse em leitura de arquivos em diretório, criação de conexão com dois bancos de dados diferentes e execução de select em um e insert 
 	no outro.
 	
-**Exemplo:**
+**Exemplo: Esse script é reponsável por inserir as informações retiradas do banco snow_flake, para o modelo star**
 	
 		def populate_tables(model: str) -> None:
 			    # insert data into tables
@@ -303,9 +326,22 @@ Contas para serem calculados os retornos de investimento.
  
 Foi usado um script python para a leitura do arquivo investment_accounts_to_send.csv e uma função para ler o json de investimentos investments_json com o intuito de gerar uma tabela e a partir daí usando o framework pandas do Python processar o cruzamento das contas com o arquivo de transações.
 
+Principais arquivos da pasta **return_of_investment**:
+![image](https://user-images.githubusercontent.com/49626719/175830229-51c7e0a5-521b-4759-b44c-ca212ea472c6.png)
+
+	- process.py 
+		Arquivo principal. Executa todas as funções necessárias para a geração do arquivo final.
+	- calculate.py
+		Efetua os cálculos abaixo:
+		 - 𝑀𝑜𝑣𝑒𝑚𝑒𝑛𝑡𝑠 = 𝑃𝑟𝑒𝑣𝑖𝑜𝑢𝑠 𝐷𝑎𝑦 𝐵𝑎𝑙𝑎𝑛𝑐𝑒 + 𝐷𝑒𝑝𝑜𝑠𝑖𝑡 − 𝑊𝑖𝑡ℎ𝑑𝑟𝑎𝑤al
+		 - 𝐸𝑛𝑑 𝑜𝑓 𝐷𝑎𝑦 𝐼𝑛𝑐𝑜𝑚𝑒 = 𝑀𝑜𝑣𝑒𝑚𝑒𝑛𝑡𝑠 * 𝐼𝑛𝑐𝑜𝑚𝑒 𝑅𝑎𝑡𝑒
+		 - 𝐴𝑐𝑐𝑜𝑢𝑛𝑡 𝐷𝑎𝑖𝑙𝑦 𝐵𝑎𝑙𝑎𝑛𝑐𝑒 = 𝑀𝑜𝑣𝑒𝑚𝑒𝑛𝑡𝑠 + 𝐸𝑛𝑑 𝑜𝑓 𝐷𝑎𝑦 𝐼𝑛𝑐𝑜𝑚𝑒	
+	- investment_income.csv
+		Arquivo final gerado pelo processo. Traz o saldo diário de cada conta enviada.
+
 ***Resultado***
 
-![image](https://user-images.githubusercontent.com/49626719/175798642-32a04cd8-2cc9-4093-bdaa-d52a05b11f95.png)
+![image](https://user-images.githubusercontent.com/49626719/175830195-3fa06e39-73ec-4307-9a0f-408cc2d5bad1.png)
 
 
  ### Script Python para analisar as transações:

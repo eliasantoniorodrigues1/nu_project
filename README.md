@@ -264,11 +264,21 @@ Visão Gerencial
 •	Percentual de crescimento de transações em relação aos demais produtos (transferências, investimentos e etc)
 •	Desempenho em relação a meta
 
+**Exemplo:**
+
+![image](https://user-images.githubusercontent.com/49626719/175800943-6ab0e0bc-ae2d-45b8-9f8a-012a5b4eb1c2.png)
+
+
 Visão Analítica
 
 •	Quantidade de transações por hora
 •	Quantidade de transações por minuto
 •	Quantidade de transações por segundo
+
+**Exemplo:**
+
+![image](https://user-images.githubusercontent.com/49626719/175800966-a2971a03-6b8c-47e8-8fde-91f733cbe754.png)
+
 
 Visão Preditiva
 
@@ -276,6 +286,11 @@ Visão Preditiva
 Minuto, segundo e hora.
 
 O intuito é efetuar um novo balanceamento dos recursos de servidores para o serviço não ser impactado.
+
+**Exemplo**
+
+![image](https://user-images.githubusercontent.com/49626719/175801058-6e8931ca-23f9-49c0-bef5-d478ee988ce8.png)
+
 
 ### Problem Statement 5: Função para calcular o retorno total de um investimento realizado
 

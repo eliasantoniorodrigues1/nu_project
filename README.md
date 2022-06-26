@@ -1,7 +1,8 @@
 # nu_project
+
+## Projeto de Migração de Modelo de Dados
 ---
 
-## Projeto de migração de modelo de dados
 ### Objetivo:
 	Recriar o banco de dados original no modelo floco de neve e migra-lo para o esquema estrela.
 
@@ -15,9 +16,9 @@ Nssa etapa foi gerado uma consulta para o problema proposto de saldo mensal das 
 
 **SGBD -> MySQL (default engine).***
 
-•	Amount_Balance_Account.sql
-•	Balance Account Monthly.csv
-•	Necessary Inputs.txt
+	- Amount_Balance_Account.sql
+	- Balance Account Monthly.csv
+	- Necessary Inputs.txt
 
 Foi utilizado a união de três tabelas para a criação de uma tabela de cálculo (CTE). Essa tabela é ligada com a tabela de clientes para trazer o account_id e o nome do cliente.
 As colunas *Total Transfer In*, *Total Transfer Out* e *Account Monthly Balance* são calculadas na CTE e levam em consideração as movimentações do pix também.

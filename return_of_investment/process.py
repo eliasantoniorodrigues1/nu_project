@@ -1,3 +1,4 @@
+from numpy import append
 from .calculate import calculate_movements
 import json
 from datetime import datetime
@@ -76,7 +77,7 @@ def filter_df(dataframe: pd.DataFrame, column_to_filter: str, list_values: list)
 
 def calculation_process():
     print('Please wait, processing calculation...')
-    
+
     # load base file with accounts
     df_accounts = pd.read_csv(os.path.join(
         RAW_TABLES_DIR, 'investment_accounts_to_send.csv'))
@@ -111,7 +112,8 @@ def calculation_process():
     positive_df = filter_df(dataframe=df_filtered, column_to_filter='type', list_values=[
                             'investment_transfer_in'])
 
-    positive_df = positive_df.loc[:, ['investment_completed_at_timestamp', 'day', 'month', 'account_id', 'amount']]
+    positive_df = positive_df.loc[:, [
+        'investment_completed_at_timestamp', 'day', 'month', 'account_id', 'amount']]
     positive_df['Withdrawal'] = 0
 
     columns_p = {'day': 'Day', 'month': 'Month', 'account_id': 'Account ID',
@@ -122,17 +124,18 @@ def calculation_process():
     negative_df = filter_df(dataframe=df_filtered, column_to_filter='type', list_values=[
                             'investment_transfer_out'])
 
-    negative_df = negative_df.loc[:, ['investment_completed_at_timestamp', 'day', 'month', 'account_id', 'amount']]
+    negative_df = negative_df.loc[:, [
+        'investment_completed_at_timestamp', 'day', 'month', 'account_id', 'amount']]
     negative_df.insert(3, 'Deposit', 0)
 
     columns_n = {'day': 'Day', 'month': 'Month', 'account_id': 'Account ID',
                  'amount': 'Withdrawal'}
-    negative_df.rename(columns=columns_n, inplace=True)                            
-    
+    negative_df.rename(columns=columns_n, inplace=True)
+
     # concatenate dfs
     result = pd.concat([positive_df, negative_df])
     result = result.sort_values(
-        by=['investment_completed_at_timestamp', 'Account ID'])
+        by=['Account ID', 'investment_completed_at_timestamp'])
 
     result = result.drop(columns=['investment_completed_at_timestamp'])
 
@@ -140,16 +143,33 @@ def calculation_process():
     result['End of Day Income'] = 0
     result['Account Daily Balance'] = 0
 
-    # transform to list to calculate balance by row
-    list_df = result.values.tolist()
+    # sort account list
+    accounts = sorted(accounts)
     calculation_result = []
-    for i in range(len(list_df)):
-        calculation_result.append(calculate_movements(list_df, i))
+    for account in accounts:
+        # filter df for actual account_id
+        df = filter_df(dataframe=result,
+                       column_to_filter='Account ID', list_values=[account])
 
-    # get last column from processed list
-    result_df = pd.DataFrame(calculation_result[-1], columns=['Day', 'Month', 'Account ID',
-                                                              'Deposit', 'Withdrawal', 'End of Day Income', 'Account Daily Balance'])
-    print(result_df.head(11))
+        # transform to list to calculate balance by row
+        list_df = df.values.tolist()
+        p_result = []
+        for i in range(len(list_df)):
+            p_result.append(calculate_movements(list_df, i))
+
+            # if len(p_result) == i:
+            # adding just the last calculation in the result list
+        calculation_result.append(p_result[-1])
+
+    # concat dfs
+    # columns for final result
+    final_df_columns = result.columns.tolist()
+    r = []
+    for row_data in calculation_result:
+        r.append(pd.DataFrame(row_data, columns=final_df_columns))
+
+    result_df = pd.concat(r)
+    print(result_df.head(10))
     dir_file = os.path.join(BASE_DIR, 'return_of_investment')
     result_df.to_csv(os.path.join(
         dir_file, 'Investiment_Income.csv'), index=False)

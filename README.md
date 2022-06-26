@@ -28,7 +28,7 @@ A union of three tables wwas used to create a calculation table (CTE).
 	- pix_moviments
 
 This table is linked with the customer and accounts table to bring up the account_id and customer name.
-The **Total Transfer In**, **Total Transfer Out** e **Account Monthly Balance** columns are calculated in the CTE and take into account the pix moviments as well.
+The **Total Transfer In**, **Total Transfer Out** and **Account Monthly Balance** columns are calculated in the CTE and take into account the pix moviments as well.
 
 
 **Note.: The investment table was not used for this problem solution**
@@ -123,7 +123,7 @@ Below I will present the structure to perform all the action of creating the dat
 
 ![image](https://user-images.githubusercontent.com/49626719/175793587-665a639a-8af3-49f4-91b0-4155c0d553e2.png)
 
-#### Passo 1: Database design
+#### Step 1: Database design
 
 Creation of the configuration files: 
 
@@ -294,7 +294,7 @@ in the other.
 
 ### Problem Statement 4: Proposed KPIs for Pix
 
-The pix is ​​a product with a high demand for transactions. To monitor the performance of this product I suggest the creation of the following indicators:
+The pix is a product with a high demand for transactions. To monitor the performance of this product I suggest the creation of the following indicators:
 
 Management View
 

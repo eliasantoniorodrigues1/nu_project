@@ -7,7 +7,7 @@
 
 ### Problem Statements
 
-Problem Statement 1: Gerando consultas SQL
+### Problem Statement 1: Gerando consultas SQL
 
 Essa etapa gerar a consulta para o problema proposto de saldo mensal das contas. A consulta e o csv gerado estão armazenados no caminho abaixo:
 Nubank_Analytics_Engineer_Case_4.0\Problem Statement\1_Problem Statement
@@ -16,6 +16,8 @@ A engine de banco de dados usada é o **MySQL.
 •	Amount_Balance_Account.sql
 •	Balance Account Monthly.csv
 •	Necessary Inputs.txt
+
+
 
 ### Problem Statement 2:
 
@@ -96,10 +98,10 @@ Criação dos arquivos de configuração:
 
 Credenciais:
 	Contém todas as informações para a criação do esquema de banco de dados.
-	Host
-	User
-	Password
-	Database
+ - Host
+ - User
+ - Password
+ - Database
 
 O argumento database precisa ser passado para não gerar erro na criação do modelo de dados.
 

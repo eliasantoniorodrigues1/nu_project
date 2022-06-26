@@ -35,7 +35,8 @@ As colunas *Total Transfer In*, *Total Transfer Out* e *Account Monthly Balance*
 
 ***Snow Flake***
 
- ![image](https://user-images.githubusercontent.com/49626719/175793233-99e58a5c-bc10-466f-9b3a-37651e86b53f.png)
+ ![image](https://user-images.githubusercontent.com/49626719/175799521-74982800-a6b6-46f2-8227-54621aecfb63.png)
+
 
 
   ***Star Schema***
@@ -149,10 +150,20 @@ Todo o processo é armazenado em log para facilitar análise de erros e melhoria
 
 ### Problem Statement 3: Plano de Migração
 
+Para executar uma migração das informações de um banco para o outro sem que haja impacto na operação é necessário análisar os horários com menor impacto, sempre
+visando manter a performance das bases de produção.
+É muito importante um alinhamento com as áreas de administração de banco de dados, negócio e outras equipes que possam ser impactadas.
+As consultas devem ser otimizadas para onerar o mínimo possível os servidores, sejam eles em nuvem ou onpremise.
+O plano de carga também deve ser levado em consideração, qual seria a melhor abordagem, coleta de hora em hora, carga histórica e etc. É necessário alinhar a estratégia para que tudo corra bem.
+
+Usar uma base de testes para fazer uma análise prévia da performance do fluxo criado com um número controlado de informações, afim de estimar o impacto com o volume
+real.
+
 O plano de migração segue o fluxo abaixo:
-	1.Ler os arquivos no banco de dados nu_snow_flake através de consultas sql armazenadas no diretório query dentro do projeto.
+	1. Alimentar os arquivos de configuração do banco de dados na pasta **\project\settings\**, pois são eles que irão criar a conexão entre os bancos necessários.
+	2.Ler as informações no banco de dados nu_snow_flake através de consultas sql armazenadas no diretório **\project\model\query** e editá-las afim de melhorar a performance delas, caso seja necessário.
 	
-	2. Conectar-se ao banco de dados nu_star_schema  e executar o insert seguindo a ordem das consultas dentro do diretório de queries.
+	3. Conectar-se ao banco de dados nu_star_schema  e executar o insert seguindo a ordem das consultas dentro do diretório de queries, para que os relacionamentos sejam criados corretamente.
 	
 	Scripts desse processo:
 	

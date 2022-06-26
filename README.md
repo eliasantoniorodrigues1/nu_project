@@ -54,29 +54,33 @@ A ideia é consolidar algumas tabelas do modelo, criando agregação de campos.*
 ### Dimensões propostas para o modelo estrela:
 
 **Dimensão de região:**
-De:
-	city,
-	state,
-	country
-para: 
-	***d_region***
+
+	De:
+		city,
+		state,
+		country
+	para: 
+		***d_region***
 
 **Dimensão tempo:**
-De:
-	d_time,
-	d_weekday
-	d_week
-	d_month
-	d_year
-para:
-	**d_calendar**
+
+	De:
+		d_time,
+		d_weekday
+		d_week
+		d_month
+		d_year
+	para:
+		**d_calendar**
 		
 **Dimensão de Transação:**
 
 Gerar os tipos de transações realizadas a partir das tabelas transfer_ins, transfer_outs, pix_moviments e investments e adiciona um id para favorecer o relacionamento com a tabela **f_transactions**.
-	**d_transaction_type**
+
+		**d_transaction_type**
 	
 Essa dimensáo irá favorecer a criação de indicadores por tipo de movimento.
+
 ![image](https://user-images.githubusercontent.com/49626719/175829704-c85263c4-3c65-44d1-b1f5-054e35b253fa.png)
 
 
@@ -116,12 +120,13 @@ Abaixo irei apresentar a estrutura para executar toda a ação de criação do m
 
 Criação dos arquivos de configuração: 
 
-•	credentials_snow_flake.json
+• 	credentials_snow_flake.json
 •	credentials_snow_star.json
 •	tables.json
 
 
 **Credenciais:**
+
 Contém todas as informações para a criação do esquema de banco de dados:
 
 	  - Host
@@ -137,9 +142,9 @@ O arquivo de configuração das tabelas server para manter a parte toda a estrut
 
 **Existem dois dicionários:**
 
-•	Snow_flake_tables (Original)
-•	Star_Schema_tables (Modelo proposto)
-•	Convert_to_datetime
+	- Snow_flake_tables (Original)
+	- Star_Schema_tables (Modelo proposto)
+	- Convert_to_datetime
 
 *Sempre que quiser alterar as tabelas do modelo de dados, alterar relacionamentos e etc, é no arquivo **tables.json** que você irá fazer os ajustes.
 
@@ -182,18 +187,20 @@ O plano de carga também deve ser levado em consideração, qual seria a melhor 
 Usar uma base de testes para fazer uma análise prévia da performance do fluxo criado com um número controlado de informações, afim de estimar o impacto com o volume
 real.
 
-O plano de migração segue o fluxo abaixo:
-	1. Alimentar os arquivos de configuração do banco de dados na pasta **\project\settings\**, pois são eles que irão criar a conexão entre os bancos necessários.
-	2.Ler as informações no banco de dados nu_snow_flake através de consultas sql armazenadas no diretório **\project\model\query** e editá-las afim de melhorar a performance delas, caso seja necessário.
+### O plano de migração segue o fluxo abaixo:
+
+1. Alimentar os arquivos de configuração do banco de dados na pasta **\project\settings\**, pois são eles que irão criar a conexão entre os bancos necessários.
+
+2. Ler as informações no banco de dados nu_snow_flake através de consultas sql armazenadas no diretório **\project\model\query** e editá-las afim de melhorar a performance delas, caso seja necessário.
 	
-	3. Conectar-se ao banco de dados nu_star_schema  e executar o insert seguindo a ordem das consultas dentro do diretório de queries, para que os relacionamentos sejam criados corretamente.
+3. Conectar-se ao banco de dados nu_star_schema  e executar o insert seguindo a ordem das consultas dentro do diretório de queries, para que os relacionamentos sejam criados corretamente.
 	
-	Scripts desse processo:
+Scripts desse processo:
 	
 ![image](https://user-images.githubusercontent.com/49626719/175793857-8720c7ac-fceb-4fb5-99a0-49526656180e.png)
 
-	São scripts com enfâse em leitura de arquivos em diretório, criação de conexão com dois bancos de dados diferentes e execução de select em um e insert 
-	no outro.
+São scripts com enfâse em leitura de arquivos em diretório, criação de conexão com dois bancos de dados diferentes e execução de select em um e insert 
+no outro.
 	
 **Exemplo: Esse script é reponsável por inserir as informações retiradas do banco snow_flake, para o modelo star**
 	
@@ -282,30 +289,30 @@ O pix é um produto com uma alta de manda de transações. Para acompanhar o des
 
 Visão Gerencial
 
-•	Quantidade de transações consolidadas por dia
-•	Quantidade de transações consolidadas por mês
-•	Percentual de crescimento de transações em relação aos demais produtos (transferências, investimentos e etc)
-•	Desempenho em relação a meta
+	- Quantidade de transações consolidadas por dia
+	- Quantidade de transações consolidadas por mês
+	- Percentual de crescimento de transações em relação aos demais produtos (transferências, investimentos e etc)
+	- Desempenho em relação a meta
 
 **Exemplo:**
 
 ![image](https://user-images.githubusercontent.com/49626719/175800943-6ab0e0bc-ae2d-45b8-9f8a-012a5b4eb1c2.png)
 
 
-Visão Analítica
+***Visão Analítica***
 
-•	Quantidade de transações por hora
-•	Quantidade de transações por minuto
-•	Quantidade de transações por segundo
+	- Quantidade de transações por hora
+	- Quantidade de transações por minuto
+	- Quantidade de transações por segundo
 
 **Exemplo:**
 
 ![image](https://user-images.githubusercontent.com/49626719/175800966-a2971a03-6b8c-47e8-8fde-91f733cbe754.png)
 
 
-Visão Preditiva
+***Visão Preditiva***
 
-•	Essa visão irá conter o resultado da predição dos próximos picos de transações por
+Essa visão irá conter o resultado da predição dos próximos picos de transações por
 Minuto, segundo e hora.
 
 O intuito é efetuar um novo balanceamento dos recursos de servidores para o serviço não ser impactado.
@@ -327,10 +334,11 @@ Contas para serem calculados os retornos de investimento.
 Foi usado um script python para a leitura do arquivo investment_accounts_to_send.csv e uma função para ler o json de investimentos investments_json com o intuito de gerar uma tabela e a partir daí usando o framework pandas do Python processar o cruzamento das contas com o arquivo de transações.
 
 Principais arquivos da pasta **return_of_investment**:
+
 ![image](https://user-images.githubusercontent.com/49626719/175830229-51c7e0a5-521b-4759-b44c-ca212ea472c6.png)
 
 	- process.py 
-		Arquivo principal. Executa todas as funções necessárias para a geração do arquivo final.
+	  	Arquivo principal. Executa todas as funções necessárias para a geração do arquivo final.
 	- calculate.py
 		Efetua os cálculos abaixo:
 		 - 𝑀𝑜𝑣𝑒𝑚𝑒𝑛𝑡𝑠 = 𝑃𝑟𝑒𝑣𝑖𝑜𝑢𝑠 𝐷𝑎𝑦 𝐵𝑎𝑙𝑎𝑛𝑐𝑒 + 𝐷𝑒𝑝𝑜𝑠𝑖𝑡 − 𝑊𝑖𝑡ℎ𝑑𝑟𝑎𝑤al

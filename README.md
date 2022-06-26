@@ -1,4 +1,4 @@
-# nu_project
+# Nu Project
 
 ## Data Model Migration Project
 ---

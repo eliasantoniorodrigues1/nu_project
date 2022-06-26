@@ -17,6 +17,16 @@ A engine de banco de dados usada é o **MySQL.
 •	Balance Account Monthly.csv
 •	Necessary Inputs.txt
 
+Foi utilizado a união de três tabelas para a criação de uma tabela de cálculo (CTE). Essa tabela é ligada com a tabela de clientes para trazer o account_id e o nome do cliente.
+As colunas *Total Transfer In*, *Total Transfer Out* e *Account Monthly Balance* são calculadas na CTE e levam em consideração as movimentações do pix também.
+
+**Query**
+
+![image](https://user-images.githubusercontent.com/49626719/175798981-76f8571d-9e85-4143-9b35-0e15c0a21745.png)
+
+**Result**
+
+![image](https://user-images.githubusercontent.com/49626719/175799145-659eda87-6878-4453-88eb-18f785b8723f.png)
 
 
 ### Problem Statement 2:
@@ -25,7 +35,8 @@ A engine de banco de dados usada é o **MySQL.
 
 ***Snow Flake***
 
- ![image](https://user-images.githubusercontent.com/49626719/175793233-99e58a5c-bc10-466f-9b3a-37651e86b53f.png)
+ ![image](https://user-images.githubusercontent.com/49626719/175799521-74982800-a6b6-46f2-8227-54621aecfb63.png)
+
 
 
   ***Star Schema***
@@ -98,10 +109,10 @@ Criação dos arquivos de configuração:
 
 Credenciais:
 	Contém todas as informações para a criação do esquema de banco de dados.
- - Host
- - User
- - Password
- - Database
+  - Host
+  - User
+  - Password
+  - Database
 
 O argumento database precisa ser passado para não gerar erro na criação do modelo de dados.
 
@@ -139,10 +150,20 @@ Todo o processo é armazenado em log para facilitar análise de erros e melhoria
 
 ### Problem Statement 3: Plano de Migração
 
+Para executar uma migração das informações de um banco para o outro sem que haja impacto na operação é necessário análisar os horários com menor impacto, sempre
+visando manter a performance das bases de produção.
+É muito importante um alinhamento com as áreas de administração de banco de dados, negócio e outras equipes que possam ser impactadas.
+As consultas devem ser otimizadas para onerar o mínimo possível os servidores, sejam eles em nuvem ou onpremise.
+O plano de carga também deve ser levado em consideração, qual seria a melhor abordagem, coleta de hora em hora, carga histórica e etc. É necessário alinhar a estratégia para que tudo corra bem.
+
+Usar uma base de testes para fazer uma análise prévia da performance do fluxo criado com um número controlado de informações, afim de estimar o impacto com o volume
+real.
+
 O plano de migração segue o fluxo abaixo:
-	1.Ler os arquivos no banco de dados nu_snow_flake através de consultas sql armazenadas no diretório query dentro do projeto.
+	1. Alimentar os arquivos de configuração do banco de dados na pasta **\project\settings\**, pois são eles que irão criar a conexão entre os bancos necessários.
+	2.Ler as informações no banco de dados nu_snow_flake através de consultas sql armazenadas no diretório **\project\model\query** e editá-las afim de melhorar a performance delas, caso seja necessário.
 	
-	2. Conectar-se ao banco de dados nu_star_schema  e executar o insert seguindo a ordem das consultas dentro do diretório de queries.
+	3. Conectar-se ao banco de dados nu_star_schema  e executar o insert seguindo a ordem das consultas dentro do diretório de queries, para que os relacionamentos sejam criados corretamente.
 	
 	Scripts desse processo:
 	
@@ -243,11 +264,21 @@ Visão Gerencial
 •	Percentual de crescimento de transações em relação aos demais produtos (transferências, investimentos e etc)
 •	Desempenho em relação a meta
 
+**Exemplo:**
+
+![image](https://user-images.githubusercontent.com/49626719/175800943-6ab0e0bc-ae2d-45b8-9f8a-012a5b4eb1c2.png)
+
+
 Visão Analítica
 
 •	Quantidade de transações por hora
 •	Quantidade de transações por minuto
 •	Quantidade de transações por segundo
+
+**Exemplo:**
+
+![image](https://user-images.githubusercontent.com/49626719/175800966-a2971a03-6b8c-47e8-8fde-91f733cbe754.png)
+
 
 Visão Preditiva
 
@@ -255,6 +286,11 @@ Visão Preditiva
 Minuto, segundo e hora.
 
 O intuito é efetuar um novo balanceamento dos recursos de servidores para o serviço não ser impactado.
+
+**Exemplo**
+
+![image](https://user-images.githubusercontent.com/49626719/175801058-6e8931ca-23f9-49c0-bef5-d478ee988ce8.png)
+
 
 ### Problem Statement 5: Função para calcular o retorno total de um investimento realizado
 

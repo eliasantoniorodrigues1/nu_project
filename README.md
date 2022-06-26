@@ -267,7 +267,8 @@ Foi usado um script python para a leitura do arquivo investment_accounts_to_send
 
 ***Resultado***
 
-![image](https://user-images.githubusercontent.com/49626719/175793473-6e58ebb0-65b5-4e01-8f03-9da914e9e962.png)
+![image](https://user-images.githubusercontent.com/49626719/175798642-32a04cd8-2cc9-4093-bdaa-d52a05b11f95.png)
+
 
  ### Script Python para analisar as transações:
  

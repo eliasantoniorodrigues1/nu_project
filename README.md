@@ -127,9 +127,9 @@ Below I will present the structure to perform all the action of creating the dat
 
 Creation of the configuration files: 
 
-• 	credentials_snow_flake.json
-•	credentials_snow_star.json
-•	tables.json
+	- credentials_snow_flake.json
+	- credentials_snow_star.json
+	- tables.json
 
 
 **Credentials:**
@@ -162,9 +162,9 @@ The tables server configuration file to keep aside the entire table structure of
 Reading the **raw_tables** folder, to create the database. This part of the process consists of reading each directory looking for specific file types **(csv, xlsx, json)**.
 
 
-1.	Browse the directories within the raw_tables directory and map the files within each folder and enter them into a directory list.
-2.	Uses the list to go through the directory again opening the files and consolidating them, thus generating a single dataset.
-3.	Converts the generated dataset into a list and passes it to the function, which splits the data into batches to improve the performance of the database insertion.
+	1. Browse the directories within the raw_tables directory and map the files within each folder and enter them into a directory list.
+	2. Uses the list to go through the directory again opening the files and consolidating them, thus generating a single dataset.
+	3. Converts the generated dataset into a list and passes it to the function, which splits the data into batches to improve the performance of the database insertion.
 
 **Note: The whole process of collecting the files, and running queries on the snow_flake model to insert into the star model is taking about 12 minutes.**
 
@@ -178,7 +178,8 @@ The whole process is stored in a log to facilitate error analysis and future per
 
 
 You can reproduce the project using the ***requirements.txt*** file.
-There is also a private backup of the project information on **GitHub**.
+
+There is also a private backup of the project information on **GitHub (https://github.com/eliasantoniorodrigues1/nu_project)**.
 
 
 ### Problem Statement 3: Migration Plan

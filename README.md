@@ -1,16 +1,17 @@
 # nu_project
 
-## Projeto de Migração de Modelo de Dados
+## Data Model Migration Project
 ---
 
-### Objetivo:
-	Recriar o banco de dados original no modelo floco de neve e migra-lo para o esquema estrela.
+### Objective:
+	Recreate the original database in the snowflake model and migrate it to the star schema.
 
 ### Problem Statements
 
-### Problem Statement 1: Gerando consultas SQL
+### Problem Statement 1: Generating SQL queries
 
-Nssa etapa foi gerado uma consulta para o problema proposto de saldo mensal das contas. A consulta e o csv gerado estão armazenados no caminho abaixo:
+In this step we generated a query for the proposed problem of monthly account balances.
+The query and the generated csv are stored in the path below:
 
 **\Nubank_Analytics_Engineer_Case_4.0\Problem Statement\1_Problem Statement**
 
@@ -20,10 +21,17 @@ Nssa etapa foi gerado uma consulta para o problema proposto de saldo mensal das 
 	- Balance Account Monthly.csv
 	- Necessary Inputs.txt
 
-Foi utilizado a união de três tabelas para a criação de uma tabela de cálculo (CTE). Essa tabela é ligada com a tabela de clientes para trazer o account_id e o nome do cliente.
-As colunas *Total Transfer In*, *Total Transfer Out* e *Account Monthly Balance* são calculadas na CTE e levam em consideração as movimentações do pix também.
+A union of three tables wwas used to create a calculation table (CTE).
 
-**Obs.: Para esse problema não foi usado a tabela de investimentos.**
+	- transfer_ins
+	- transfer_outs
+	- pix_moviments
+
+This table is linked with the customer and accounts table to bring up the account_id and customer name.
+The **Total Transfer In**, **Total Transfer Out** e **Account Monthly Balance** columns are calculated in the CTE and take into account the pix moviments as well.
+
+
+**Note.: The investment table was not used for this problem solution**
 
 **Query**
 
@@ -36,7 +44,7 @@ As colunas *Total Transfer In*, *Total Transfer Out* e *Account Monthly Balance*
 
 ### Problem Statement 2:
 
-***a. Proposta para mudança do modelo de dados original:***
+***a. Proposal for changing the original data model:***
 
 ***Snow Flake***
 
@@ -49,57 +57,55 @@ As colunas *Total Transfer In*, *Total Transfer Out* e *Account Monthly Balance*
  ![image](https://user-images.githubusercontent.com/49626719/175793235-fa3da6f6-927c-46fa-b82d-2f5c9bf37ef6.png)
 
 
-***b. O modelo floco de neve não é o mais recomendado pois possui um nível maior de normalização dos dados, o que pode gerar lentidão devido ao ecesso de relacionamentos entre tabelas do modelo para alcançar um determinado tipo de resultado.
-A ideia é consolidar algumas tabelas do modelo, criando agregação de campos.***
+***b. The snowflake model is not the most recommended because it has a higher level of normalization of the data, wich can be slower due to the process of relationships between tables in the model to achieve a certain type of result.
+The idea is to consolidate some tables in the model, creating field aggregation.
 
-### Dimensões propostas para o modelo estrela:
+### Dimensions proposed for the star model:
 
-**Dimensão de região:**
+**Region dimension:**
 
-	De:
+	From:
 		city,
 		state,
 		country
-	para: 
+	to: 
 		***d_region***
 
-**Dimensão tempo:**
+**Dimension time:**
 
-	De:
+	From:
 		d_time,
 		d_weekday
 		d_week
 		d_month
 		d_year
-	para:
+	to:
 		**d_calendar**
 		
-**Dimensão de Transação:**
+**Transaction Dimension:**
 
-Gerar os tipos de transações realizadas a partir das tabelas transfer_ins, transfer_outs, pix_moviments e investments e adiciona um id para favorecer o relacionamento com a tabela **f_transactions**.
+Generate the types of transactions performed from the transfer_ins, transfer_outs, pix_moviments and investments tables and adds an id to favor the relationship with the **f_transaction** table.
 
 		**d_transaction_type**
 	
-Essa dimensáo irá favorecer a criação de indicadores por tipo de movimento.
+This dimension will help in creating indicators by transaction type.
 
 ![image](https://user-images.githubusercontent.com/49626719/175829704-c85263c4-3c65-44d1-b1f5-054e35b253fa.png)
 
 
-**Dimesão de Status Transação:**
+**Transaction Status Dimension:**
 
-Obter todos os status das transações (completed, failed) das tabelas transfer_ins, transfer_outs, pix_moviments e investments. 
-Gerar uma única dimensão de status.
+Get all transaction statuses (completed, failed) from the transfer_ins, transfer_outs, pix_moviments and investments tables. Generate a single status dimension. d_status_transaction.
+
 		**d_status_transaction**
 
-**Dimesão de Clientes:**
+**Customers dimension:**
 
-Para a criação da tabela de clientes foi agreagdo algumas informações da tabela de contas, pois como ambas possuem registros únicos, usei essa estratégia para 
-diminuir o número de dimensóes e manter o relacionamento com a tabela fato com menos chaves estrangeiras possível.
+To create the customer table, some information was aggregated from the account table, because as both have unique records, I used this strategy to decrease the number of dimensions and keep the relationship with the fact table with as few foreign keys as possible.
 
-**Criação da tabela Fato f_transactions:**
+**Creation of the FACT table f_transactions:**
 
-A tabela fato é a consolidação das chaves estrangeiras de todas as tabelas dimensão, usando sempre como referência a chave primária de cada uma.
-Unificação de:
+The fact table is the consolidation of the foreign keys of all the dimension tables, always using the primary key of each as a reference. Unification of:
 
 	Transfer_ins
 	Transfer_outs
@@ -107,66 +113,66 @@ Unificação de:
 	Investments
 
 
-## Como esse projeto funciona?
+## How does this project work?
 
-Abaixo irei apresentar a estrutura para executar toda a ação de criação do modelo de dados, bem como a coleta dos arquivos originais em suas respectivas pastas para popular o banco já com os devidos relacionamentos.
+Below I will present the structure to perform all the action of creating the data model, as well as the collection of the original files in their respective folders to populate the database already with the proper relationships.
 
-### Passo a passo do funcionamento do projeto:
+### Step by step of how the project works:
 
-#### Estrutura do Projeto:
+#### Project Structure:
 
 ![image](https://user-images.githubusercontent.com/49626719/175793587-665a639a-8af3-49f4-91b0-4155c0d553e2.png)
 
-#### Passo 1: Design da base de dados
+#### Passo 1: Database design
 
-Criação dos arquivos de configuração: 
+Creation of the configuration files: 
 
 • 	credentials_snow_flake.json
 •	credentials_snow_star.json
 •	tables.json
 
 
-**Credenciais:**
+**Credentials:**
 
-Contém todas as informações para a criação do esquema de banco de dados:
+Contains all the information for creating the database schema:
 
 	  - Host
 	  - User
 	  - Password
 	  - Database
 
-O argumento database precisa ser passado para não gerar erro na criação do modelo de dados.
+The database argument must be passed in order not to generate an error when creating the data model.
 
 **Tables:**
 
-O arquivo de configuração das tabelas server para manter a parte toda a estrutura de tabelas do banco, bem como os nomes das colunas, tipo de dados e os seus respectivos relacionamentos.
+The tables server configuration file to keep aside the entire table structure of the database, as well as the column names, data type and their respective relationships.
 
-**Existem dois dicionários:**
+**There are two dictionaries:**
 
 	- Snow_flake_tables (Original)
 	- Star_Schema_tables (Modelo proposto)
 	- Convert_to_datetime
 
-*Sempre que quiser alterar as tabelas do modelo de dados, alterar relacionamentos e etc, é no arquivo **tables.json** que você irá fazer os ajustes.
+*Whenever you want to change tables in the data model, change relationships and so on, it is in the **tables.json** file that you will make the adjustments.
 
-***A lista convert_to_datetime, server para mapear todas as colunas de data que precisam de tratamento em seus respectivos UTCs.***
+***The list convert_to_datetime, serves to map all the date columns that need to be treated to their respective UTCs.***
 
-#### Passo 2: Ação na base de dados criada
+#### Step 2: Action on the created database
 
-Leitura da pasta **raw_tables**, para criação do banco de dados.
-Essa parte do processo consiste em ler cada diretório buscando por tipos específicos de arquivos **(csv, xlsx, json)**.
+Reading the **raw_tables** folder, to create the database. This part of the process consists of reading each directory looking for specific file types **(csv, xlsx, json)**.
 
-1.	Percorrer os diretórios dentro do diretório raw_tables e mapear os arquivos dentro de cada pasta e os inserir em uma lista de diretórios.
-2.	Usa a lista para percorrer o diretório novamente abrindo os arquivos e os consolidando, gerando assim um único dataset.
-3.	Converte o dataset gerado em lista e passa para a função, que divide os dados em lotes para melhorar a performance da inserção no banco de dados.
 
-**Obs.: Todo o processo de coleta dos arquivos, e execução das queries no modelo snow_flake para inserir no modelo star está levando cerca de 12 minutos.**
+1.	Browse the directories within the raw_tables directory and map the files within each folder and enter them into a directory list.
+2.	Uses the list to go through the directory again opening the files and consolidating them, thus generating a single dataset.
+3.	Converts the generated dataset into a list and passes it to the function, which splits the data into batches to improve the performance of the database insertion.
+
+**Note: The whole process of collecting the files, and running queries on the snow_flake model to insert into the star model is taking about 12 minutes.**
 
 ### Log
 
-Todo o processo é armazenado em log para facilitar análise de erros e melhoria de performance futura.
+The whole process is stored in a log to facilitate error analysis and future performance improvement.
 
-***Parte do log da execução do processo no banco de dados.***
+***Part of the log of the process execution in the database.***
 
 ![image](https://user-images.githubusercontent.com/49626719/175793986-9269d110-cc64-4e9b-b355-dc4cfd23898d.png)
 

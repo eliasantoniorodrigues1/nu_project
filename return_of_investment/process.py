@@ -76,6 +76,7 @@ def filter_df(dataframe: pd.DataFrame, column_to_filter: str, list_values: list)
 
 def calculation_process():
     print('Please wait, processing calculation...')
+    
     # load base file with accounts
     df_accounts = pd.read_csv(os.path.join(
         RAW_TABLES_DIR, 'investment_accounts_to_send.csv'))
@@ -94,6 +95,10 @@ def calculation_process():
     df_filtered = filter_df(
         dataframe=df, column_to_filter='account_id', list_values=accounts)
 
+    # filter transaction completed
+    df_filtered = filter_df(
+        dataframe=df_filtered, column_to_filter='status', list_values=['completed'])
+
     # day
     df_filtered['day'] = df_filtered['investment_completed_at_timestamp'].apply(dateutil.parser.parse).apply(
         get_day)
@@ -105,31 +110,37 @@ def calculation_process():
     # generate positive df
     positive_df = filter_df(dataframe=df_filtered, column_to_filter='type', list_values=[
                             'investment_transfer_in'])
+
+    positive_df = positive_df.loc[:, ['investment_completed_at_timestamp', 'day', 'month', 'account_id', 'amount']]
+    positive_df['Withdrawal'] = 0
+
+    columns_p = {'day': 'Day', 'month': 'Month', 'account_id': 'Account ID',
+                 'amount': 'Deposit'}
+    positive_df.rename(columns=columns_p, inplace=True)
+
     # generate negative df
     negative_df = filter_df(dataframe=df_filtered, column_to_filter='type', list_values=[
                             'investment_transfer_out'])
 
-    # create new dataset joing data from positive an negative movimentations
-    result = pd.merge(positive_df.iloc[:, [1, 3, 8, 9]], negative_df.iloc[:, [1, 3, 8, 9]], how='left', on=[
-        'account_id', 'day', 'month'])
+    negative_df = negative_df.loc[:, ['investment_completed_at_timestamp', 'day', 'month', 'account_id', 'amount']]
+    negative_df.insert(3, 'Deposit', 0)
 
-    # reordering columns
-    result = result.loc[:, ['day', 'month',
-                            'account_id', 'amount_x', 'amount_y']]
-
-    columns = {'day': 'Day', 'month': 'Month', 'account_id': 'Account ID',
-               'amount_x': 'Deposit', 'amount_y': 'Withdrawal'}
-
-    # rename columns
-    result.rename(columns=columns, inplace=True)
-    # ordering data
+    columns_n = {'day': 'Day', 'month': 'Month', 'account_id': 'Account ID',
+                 'amount': 'Withdrawal'}
+    negative_df.rename(columns=columns_n, inplace=True)                            
+    
+    # concatenate dfs
+    result = pd.concat([positive_df, negative_df])
     result = result.sort_values(
-        by=['Month', 'Day', 'Account ID'])
+        by=['investment_completed_at_timestamp', 'Account ID'])
 
-    result['Withdrawal'] = result['Withdrawal'].fillna(0)
+    result = result.drop(columns=['investment_completed_at_timestamp'])
+
+    # create new columns
     result['End of Day Income'] = 0
     result['Account Daily Balance'] = 0
 
+    # transform to list to calculate balance by row
     list_df = result.values.tolist()
     calculation_result = []
     for i in range(len(list_df)):
@@ -138,7 +149,7 @@ def calculation_process():
     # get last column from processed list
     result_df = pd.DataFrame(calculation_result[-1], columns=['Day', 'Month', 'Account ID',
                                                               'Deposit', 'Withdrawal', 'End of Day Income', 'Account Daily Balance'])
-
+    print(result_df.head(11))
     dir_file = os.path.join(BASE_DIR, 'return_of_investment')
     result_df.to_csv(os.path.join(
         dir_file, 'Investiment_Income.csv'), index=False)

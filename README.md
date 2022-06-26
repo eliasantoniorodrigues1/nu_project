@@ -17,6 +17,18 @@ A engine de banco de dados usada é o **MySQL.
 •	Balance Account Monthly.csv
 •	Necessary Inputs.txt
 
+Foi utilizado a união de três tabelas para a criação de uma tabela de cálculo (CTE). Essa tabela é ligada com a tabela de clientes para trazer o account_id e o nome do cliente.
+As colunas *Total Transfer In*, *Total Transfer Out* e *Account Monthly Balance* são calculadas na CTE e levam em consideração as movimentações do pix também.
+
+**Query**
+
+![image](https://user-images.githubusercontent.com/49626719/175798981-76f8571d-9e85-4143-9b35-0e15c0a21745.png)
+
+**Result**
+
+![image](https://user-images.githubusercontent.com/49626719/175799145-659eda87-6878-4453-88eb-18f785b8723f.png)
+
+
 ### Problem Statement 2:
 
 ***a. Proposta para mudança do modelo de dados original:***

@@ -58,7 +58,7 @@ The **Total Transfer In**, **Total Transfer Out** and **Account Monthly Balance*
 
 
 ***b. The snowflake model is not the most recommended because it has a higher level of normalization of the data, wich can be slower due to the process of relationships between tables in the model to achieve a certain type of result.
-The idea is to consolidate some tables in the model, creating field aggregation.
+The idea is to consolidate some tables in the model, creating field aggregation.***
 
 ### Dimensions proposed for the star model:
 

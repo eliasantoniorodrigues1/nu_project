@@ -179,7 +179,7 @@ The whole process is stored in a log to facilitate error analysis and future per
 
 You can reproduce the project using the ***requirements.txt*** file.
 
-There is also a private backup of the project information on **GitHub (https://github.com/eliasantoniorodrigues1/nu_project)**.
+There is also a private backup of the project information on **GitHub**.
 
 
 ### Problem Statement 3: Migration Plan
